@@ -2963,6 +2963,341 @@ fn class_starter_items(class_type: CharacterClassType) -> Vec<InventoryEntry> {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ScriptValue {
+    Int(i32),
+    Bool(bool),
+    Text(String),
+}
+
+impl ScriptValue {
+    fn to_i32(&self) -> Option<i32> {
+        match self {
+            ScriptValue::Int(v) => Some(*v),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ScriptCondition {
+    Always,
+    VarEquals { var: String, value: ScriptValue },
+    VarGreaterInt { var: String, value: i32 },
+    QuestFlag { key: String, expected: bool },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum BuiltinScriptFunction {
+    GiveGold,
+    HealAndCleanse,
+    RestoreMana,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum ScriptCommand {
+    SetVar { var: String, value: ScriptValue },
+    AddInt { var: String, delta: i32 },
+    SetQuestFlag { key: String, value: bool },
+    GiveItem { item_id: String, amount: u32 },
+    HealParty { amount: i32 },
+    DamageParty { amount: i32 },
+    Message { text: String },
+    CallBuiltin {
+        function: BuiltinScriptFunction,
+        args: Vec<ScriptValue>,
+    },
+    If {
+        condition: ScriptCondition,
+        then_block: ScriptBlock,
+        else_block: Option<ScriptBlock>,
+    },
+}
+
+pub type ScriptBlock = Vec<ScriptCommand>;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ScriptRuntimeState {
+    pub variables: HashMap<String, ScriptValue>,
+}
+
+impl Default for ScriptRuntimeState {
+    fn default() -> Self {
+        Self {
+            variables: HashMap::new(),
+        }
+    }
+}
+
+pub struct ScriptRuntime<'a> {
+    pub world: &'a mut World2D,
+    pub party: &'a mut Party,
+    pub state: ScriptRuntimeState,
+    pub events: Vec<EngineEvent>,
+}
+
+impl<'a> ScriptRuntime<'a> {
+    pub fn new(world: &'a mut World2D, party: &'a mut Party) -> Self {
+        Self {
+            world,
+            party,
+            state: ScriptRuntimeState::default(),
+            events: vec![],
+        }
+    }
+
+    pub fn execute_block(&mut self, block: &ScriptBlock) {
+        for cmd in block {
+            self.execute_command(cmd);
+        }
+    }
+
+    fn execute_command(&mut self, cmd: &ScriptCommand) {
+        match cmd {
+            ScriptCommand::SetVar { var, value } => {
+                self.state.variables.insert(var.clone(), value.clone());
+            }
+            ScriptCommand::AddInt { var, delta } => {
+                let current = self
+                    .state
+                    .variables
+                    .get(var)
+                    .and_then(ScriptValue::to_i32)
+                    .unwrap_or(0);
+                self.state
+                    .variables
+                    .insert(var.clone(), ScriptValue::Int(current + delta));
+            }
+            ScriptCommand::SetQuestFlag { key, value } => {
+                self.world.quest_flags.insert(key.clone(), *value);
+                self.events.push(EngineEvent::World(WorldEvent::QuestUpdated {
+                    key: key.clone(),
+                    value: *value,
+                }));
+            }
+            ScriptCommand::GiveItem { item_id, amount } => {
+                self.party.add_item(item_id, *amount);
+                self.events.push(EngineEvent::World(WorldEvent::Message {
+                    text: format!("Gained {} x{}", item_id, amount),
+                }));
+            }
+            ScriptCommand::HealParty { amount } => {
+                for m in &mut self.party.members {
+                    if m.is_alive() {
+                        m.stats.hp += *amount;
+                        m.stats.clamp_resources();
+                    }
+                }
+            }
+            ScriptCommand::DamageParty { amount } => {
+                for m in &mut self.party.members {
+                    if m.is_alive() {
+                        m.stats.hp -= *amount;
+                        m.stats.clamp_resources();
+                    }
+                }
+            }
+            ScriptCommand::Message { text } => {
+                self.events
+                    .push(EngineEvent::World(WorldEvent::Message { text: text.clone() }));
+            }
+            ScriptCommand::CallBuiltin { function, args } => {
+                self.execute_builtin(function, args);
+            }
+            ScriptCommand::If {
+                condition,
+                then_block,
+                else_block,
+            } => {
+                if self.eval_condition(condition) {
+                    self.execute_block(then_block);
+                } else if let Some(else_block) = else_block {
+                    self.execute_block(else_block);
+                }
+            }
+        }
+    }
+
+    fn eval_condition(&self, condition: &ScriptCondition) -> bool {
+        match condition {
+            ScriptCondition::Always => true,
+            ScriptCondition::VarEquals { var, value } => self.state.variables.get(var) == Some(value),
+            ScriptCondition::VarGreaterInt { var, value } => self
+                .state
+                .variables
+                .get(var)
+                .and_then(ScriptValue::to_i32)
+                .map(|v| v > *value)
+                .unwrap_or(false),
+            ScriptCondition::QuestFlag { key, expected } => self
+                .world
+                .quest_flags
+                .get(key)
+                .copied()
+                .unwrap_or(false)
+                == *expected,
+        }
+    }
+
+    fn execute_builtin(&mut self, function: &BuiltinScriptFunction, args: &[ScriptValue]) {
+        match function {
+            BuiltinScriptFunction::GiveGold => {
+                let amount = args.first().and_then(ScriptValue::to_i32).unwrap_or(0).max(0) as u32;
+                self.party.gold = self.party.gold.saturating_add(amount);
+                self.events.push(EngineEvent::World(WorldEvent::Message {
+                    text: format!("Gold +{}", amount),
+                }));
+            }
+            BuiltinScriptFunction::HealAndCleanse => {
+                let amount = args.first().and_then(ScriptValue::to_i32).unwrap_or(10);
+                for m in &mut self.party.members {
+                    if m.is_alive() {
+                        m.stats.hp += amount;
+                        m.stats.clamp_resources();
+                        m.statuses.clear();
+                    }
+                }
+            }
+            BuiltinScriptFunction::RestoreMana => {
+                let amount = args.first().and_then(ScriptValue::to_i32).unwrap_or(10);
+                for m in &mut self.party.members {
+                    if m.is_alive() {
+                        m.stats.mp += amount;
+                        m.stats.clamp_resources();
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum BlueprintNodeKind {
+    Entry,
+    Action(ScriptCommand),
+    Condition(ScriptCondition),
+    Comment(String),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlueprintNode {
+    pub id: String,
+    pub title: String,
+    pub kind: BlueprintNodeKind,
+    pub position: (i32, i32),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlueprintEdge {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlueprintGraph {
+    pub entry_id: String,
+    pub nodes: HashMap<String, BlueprintNode>,
+    pub edges: Vec<BlueprintEdge>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum BlueprintCompileError {
+    MissingEntry,
+    MissingNode(String),
+    InvalidGraph(String),
+}
+
+impl BlueprintGraph {
+    pub fn validate(&self) -> Result<(), BlueprintCompileError> {
+        if !self.nodes.contains_key(&self.entry_id) {
+            return Err(BlueprintCompileError::MissingEntry);
+        }
+        for e in &self.edges {
+            if !self.nodes.contains_key(&e.from) {
+                return Err(BlueprintCompileError::MissingNode(e.from.clone()));
+            }
+            if !self.nodes.contains_key(&e.to) {
+                return Err(BlueprintCompileError::MissingNode(e.to.clone()));
+            }
+        }
+        Ok(())
+    }
+
+    pub fn compile_to_script(&self) -> Result<ScriptBlock, BlueprintCompileError> {
+        self.validate()?;
+        let mut visited = HashMap::<String, u32>::new();
+        self.compile_from(&self.entry_id, 0, &mut visited)
+    }
+
+    fn compile_from(
+        &self,
+        node_id: &str,
+        depth: usize,
+        visited: &mut HashMap<String, u32>,
+    ) -> Result<ScriptBlock, BlueprintCompileError> {
+        if depth > 64 {
+            return Err(BlueprintCompileError::InvalidGraph(
+                "max blueprint depth exceeded".to_string(),
+            ));
+        }
+
+        let count = visited.entry(node_id.to_string()).or_insert(0);
+        *count += 1;
+        if *count > 4 {
+            return Ok(vec![]);
+        }
+
+        let node = self
+            .nodes
+            .get(node_id)
+            .ok_or_else(|| BlueprintCompileError::MissingNode(node_id.to_string()))?;
+        let next = self.next_nodes(node_id);
+
+        let mut out = Vec::new();
+        match &node.kind {
+            BlueprintNodeKind::Entry | BlueprintNodeKind::Comment(_) => {
+                if let Some(first) = next.first() {
+                    out.extend(self.compile_from(first, depth + 1, visited)?);
+                }
+            }
+            BlueprintNodeKind::Action(cmd) => {
+                out.push(cmd.clone());
+                if let Some(first) = next.first() {
+                    out.extend(self.compile_from(first, depth + 1, visited)?);
+                }
+            }
+            BlueprintNodeKind::Condition(cond) => {
+                let then_block = if let Some(then_id) = next.first() {
+                    self.compile_from(then_id, depth + 1, &mut visited.clone())?
+                } else {
+                    vec![]
+                };
+                let else_block = if let Some(else_id) = next.get(1) {
+                    Some(self.compile_from(else_id, depth + 1, &mut visited.clone())?)
+                } else {
+                    None
+                };
+                out.push(ScriptCommand::If {
+                    condition: cond.clone(),
+                    then_block,
+                    else_block,
+                });
+            }
+        }
+        Ok(out)
+    }
+
+    fn next_nodes(&self, node_id: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        for e in &self.edges {
+            if e.from == node_id {
+                out.push(e.to.clone());
+            }
+        }
+        out
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3586,5 +3921,84 @@ mod tests {
             .unwrap();
 
         assert!(matches!(err, WorldCreationError::MissingReference(_)));
+    }
+
+    #[test]
+    fn script_runtime_executes_commands_and_conditions() {
+        let mut world = sample_world_20x15();
+        let mut party = Party {
+            members: vec![hero()],
+            inventory: HashMap::new(),
+            gold: 0,
+        };
+        let mut rt = ScriptRuntime::new(&mut world, &mut party);
+        let script: ScriptBlock = vec![
+            ScriptCommand::SetVar {
+                var: "rep".to_string(),
+                value: ScriptValue::Int(3),
+            },
+            ScriptCommand::If {
+                condition: ScriptCondition::VarGreaterInt {
+                    var: "rep".to_string(),
+                    value: 1,
+                },
+                then_block: vec![ScriptCommand::SetQuestFlag {
+                    key: "trusted".to_string(),
+                    value: true,
+                }],
+                else_block: Some(vec![ScriptCommand::SetQuestFlag {
+                    key: "trusted".to_string(),
+                    value: false,
+                }]),
+            },
+            ScriptCommand::CallBuiltin {
+                function: BuiltinScriptFunction::GiveGold,
+                args: vec![ScriptValue::Int(50)],
+            },
+        ];
+        rt.execute_block(&script);
+        assert_eq!(rt.world.quest_flags.get("trusted"), Some(&true));
+        assert_eq!(rt.party.gold, 50);
+    }
+
+    #[test]
+    fn blueprint_compiles_to_script_block() {
+        let mut nodes = HashMap::new();
+        nodes.insert(
+            "entry".to_string(),
+            BlueprintNode {
+                id: "entry".to_string(),
+                title: "Entry".to_string(),
+                kind: BlueprintNodeKind::Entry,
+                position: (0, 0),
+            },
+        );
+        nodes.insert(
+            "set".to_string(),
+            BlueprintNode {
+                id: "set".to_string(),
+                title: "Set Flag".to_string(),
+                kind: BlueprintNodeKind::Action(ScriptCommand::SetQuestFlag {
+                    key: "bp_flag".to_string(),
+                    value: true,
+                }),
+                position: (200, 0),
+            },
+        );
+        let graph = BlueprintGraph {
+            entry_id: "entry".to_string(),
+            nodes,
+            edges: vec![BlueprintEdge {
+                from: "entry".to_string(),
+                to: "set".to_string(),
+            }],
+        };
+
+        let script = graph.compile_to_script().unwrap();
+        assert_eq!(script.len(), 1);
+        assert!(matches!(
+            script[0],
+            ScriptCommand::SetQuestFlag { ref key, value } if key == "bp_flag" && value
+        ));
     }
 }
