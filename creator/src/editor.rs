@@ -899,11 +899,48 @@ impl TheTrait for Editor {
         let mut vsplitlayout = TheSharedVLayout::new(TheId::named("Shared VLayout"));
         vsplitlayout.add_canvas(editor_canvas);
         vsplitlayout.add_canvas(bottom_panels);
-        vsplitlayout.set_shared_ratio(crate::DEFAULT_VLAYOUT_RATIO);
+        vsplitlayout.set_shared_ratio(0.68);
         vsplitlayout.set_mode(TheSharedVLayoutMode::Shared);
 
         let mut shared_canvas = TheCanvas::new();
         shared_canvas.set_layout(vsplitlayout);
+
+        // Workspace strip: quick designer actions directly above the editor.
+        let mut workspace_top = TheCanvas::new();
+        workspace_top.set_widget(TheTraybar::new(TheId::empty()));
+
+        let mut workspace_actions = TheHLayout::new(TheId::named("Workspace Actions"));
+        workspace_actions.set_margin(Vec4::new(8, 2, 8, 2));
+        workspace_actions.set_padding(2);
+
+        let mut workspace_title = TheText::new(TheId::named("Workspace Title"));
+        workspace_title.set_text("Vertex Workspace".to_string());
+        workspace_actions.add_widget(Box::new(workspace_title));
+        workspace_actions.add_widget(Box::new(TheHDivider::new(TheId::empty())));
+
+        let mut validate_button = TheTraybarButton::new(TheId::named("Project Validate"));
+        validate_button.set_icon_name("info".to_string());
+        validate_button.set_status_text("Validate project consistency");
+        workspace_actions.add_widget(Box::new(validate_button));
+
+        let mut build_button = TheTraybarButton::new(TheId::named("Build Validate And Compile"));
+        build_button.set_icon_name("export".to_string());
+        build_button.set_status_text("Validate and compile runtime output");
+        workspace_actions.add_widget(Box::new(build_button));
+
+        let mut widgets_button = TheTraybarButton::new(TheId::named("Content Add Widget Starter Pack"));
+        widgets_button.set_icon_name("treasure-chest".to_string());
+        widgets_button.set_status_text("Create starter widget windows");
+        workspace_actions.add_widget(Box::new(widgets_button));
+
+        let mut refresh_button = TheTraybarButton::new(TheId::named("Project Refresh View"));
+        refresh_button.set_icon_name("arrows-clockwise".to_string());
+        refresh_button.set_status_text("Refresh workspace content");
+        workspace_actions.add_widget(Box::new(refresh_button));
+
+        workspace_actions.set_reverse_index(Some(1));
+        workspace_top.set_layout(workspace_actions);
+        shared_canvas.set_top(workspace_top);
 
         // Tool List
         let mut tool_list_canvas: TheCanvas = TheCanvas::new();
@@ -913,9 +950,9 @@ impl TheTrait for Editor {
         tool_list_canvas.set_top(tool_list_bar_canvas);
 
         let mut v_tool_list_layout = TheVLayout::new(TheId::named("Tool List Layout"));
-        v_tool_list_layout.limiter_mut().set_max_width(51);
-        v_tool_list_layout.set_margin(Vec4::new(2, 2, 2, 2));
-        v_tool_list_layout.set_padding(1);
+        v_tool_list_layout.limiter_mut().set_max_width(64);
+        v_tool_list_layout.set_margin(Vec4::new(4, 4, 4, 4));
+        v_tool_list_layout.set_padding(2);
 
         TOOLLIST
             .write()
@@ -926,7 +963,7 @@ impl TheTrait for Editor {
 
         let mut tool_list_border_canvas = TheCanvas::new();
         let mut border_widget = TheIconView::new(TheId::empty());
-        border_widget.set_border_color(Some([82, 82, 82, 255]));
+        border_widget.set_border_color(Some([92, 92, 92, 255]));
         border_widget.limiter_mut().set_max_width(1);
         border_widget.limiter_mut().set_max_height(i32::MAX);
         tool_list_border_canvas.set_widget(border_widget);
