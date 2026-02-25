@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+    <Product Name="Eldiron Creator"
+             Id="*"
+             UpgradeCode="da44883f-ca50-4b8b-8b3f-0001b8d51f64"
+             Language="1033"
+             Codepage="1252"
+             Version="0.1.0"
+             Manufacturer="Markus Moenig">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine"/>
+        <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+        <Icon Id="EldironIcon" SourceFile=".\build\windows\eldiron.ico"/>
+        <WixVariable Id="WixUILicenseRtf" Value=".\build\windows\wix\license.rtf"/>
+        <Property Id="ARPPRODUCTICON" Value="EldironIcon"/>
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Eldiron Creator"/>
+        <Property Id="WixShellExecTarget" Value="[#EldironCreatorExeFile]"/>
+        <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes"/>
+        <MediaTemplate EmbedCab="yes"/>
+
+        <UI>
+            <UIRef Id="WixUI_InstallDir"/>
+            <Publish Dialog="ExitDialog"
+                     Control="Finish"
+                     Event="DoAction"
+                     Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+        </UI>
+
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="EldironCreator"/>
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ProgramMenu" Name="EldironCreator"/>
+            </Directory>
+        </Directory>
+
+        <DirectoryRef Id="INSTALLDIR">
+            <Component Id="EldironCreatorExe" Guid="*">
+                <File Id="EldironCreatorExeFile" Source=".\eldiron-creator.exe" Name="eldiron-creator.exe" KeyPath="yes" Checksum="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="ProgramMenu">
+            <Component Id="Shortcut" Guid="*">
+                <Shortcut Id="ShortcutFile"
+                          Icon="EldironIcon"
+                          Name="EldironCreator"
+                          Description="Classic RPG Creation"
+                          Target="[!EldironCreatorExeFile]"
+                          WorkingDirectory="INSTALLDIR"/>
+                <Shortcut Id="UninstallProduct"
+                          Name="Uninstall Eldiron Creator"
+                          Target="[SystemFolder]msiexec.exe"
+                          Arguments="/x [ProductCode]"
+                          Description="Uninstalls Eldiron Creator" />
+                <RemoveFolder Id="ProgramMenu" On="uninstall"/>
+                <RegistryValue Root="HKCU" Key="Software\MarkusMoenig\EldironCreator" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="INSTALLDIR">
+            <Component Id="ModifyPathEnv" Guid="b3a054af-f2f6-429f-a0fa-6a8aff07f8e4" KeyPath="yes">
+                <Environment Id="PathEnv" Value="[INSTALLDIR]" Name="PATH" Permanent="no" Part="first" Action="set" System="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <Feature Id="MainApplicatiton" Title="Main Application" Level="1">
+            <ComponentRef Id="EldironCreatorExe"/>
+            <ComponentRef Id="Shortcut"/>
+            <ComponentRef Id="ModifyPathEnv"/>
+            <!-- <ComponentGroupRef Id="Resources"/> -->
+        </Feature>
+    </Product>
+
+    <!-- <Fragment>
+        <ComponentGroup Id="Resources" Directory="INSTALLDIR">
+            <ComponentGroupRef Id="DynamicFragment" />
+        </ComponentGroup>
+    </Fragment> -->
+</Wix>

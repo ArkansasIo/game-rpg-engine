@@ -1,0 +1,8 @@
+/target
+/generated
+utilities/target
+.DS_Store
+clients/solo/embedded/*.eldiron
+users
+Untitled*
+Xcode/Eldiron/librustapi.a

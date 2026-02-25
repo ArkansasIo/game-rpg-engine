@@ -1,0 +1,23 @@
+[workspace]
+
+members = ["creator", "run-wasm", "crates/shared", "clients/client", "crates/rusterix", "crates/rusterix/rusteria", "crates/rusterix/codegridfx/lib", "crates/theframework", "crates/scenevm"]
+resolver = "2"
+
+[workspace.dependencies]
+theframework = { path = "crates/theframework", version = "0.8.100", features = [
+    "ui",
+], default-features = true }
+
+rusterix = { path = "crates/rusterix", version = "0.8.100" }
+codegridfx = { path = "crates/rusterix/codegridfx/lib", version = "0.8.100", package = "codegridfx" }
+rusteria = { path = "crates/rusterix/rusteria", version = "0.8.100", package = "rusteria" }
+scenevm = { path = "crates/scenevm", version = "0.8.100", default-features = false }
+
+[workspace.package]
+edition = "2024"
+version = "0.8.100"
+license = "MIT"
+authors = ["Markus Moenig"]
+description = "A retro-style RPG game creator."
+repository = "https://github.com/markusmoenig/Eldiron"
+homepage = "https://eldiron.com"

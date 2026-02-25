@@ -1,0 +1,275 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+jobs:
+  # ─────────────────────────────── Linux build ────────────────────────────────
+  linux_build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { working-directory: "creator", bin-name: "eldiron-creator" }
+          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Build Eldiron -----------------------------------------------------
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libgtk-3-dev pkg-config
+
+      - name: Build (release)
+        working-directory: ${{ matrix.config.working-directory }}
+        run: cargo build --verbose --release --features log
+
+      # --- Package artefacts -------------------------------------------------
+      - name: Package artefacts
+        run: |
+          mv target/release/${{ matrix.config.bin-name }} .
+          tar -czvf ${{ matrix.config.bin-name }}-x86_64-unknown-linux-gnu.tar.gz ${{ matrix.config.bin-name }}
+          mkdir -p output
+          mv ${{ matrix.config.bin-name }}-*.gz output/
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.config.bin-name }}
+          path: output
+
+  # ────────────────────────────── Windows build ───────────────────────────────
+  windows_build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash # use Git-bash for every step
+    strategy:
+      matrix:
+        config:
+          - { working-directory: "creator", bin-name: "eldiron-creator" }
+          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Make paths short & long-path aware --------------------------------
+      - name: Enable long paths and shorten Cargo dirs
+        run: |
+          git config --system core.longpaths true
+          echo "CARGO_HOME=C:\\c"                  >> $GITHUB_ENV
+          echo "RUSTUP_HOME=C:\\r"                 >> $GITHUB_ENV
+          echo "CARGO_TARGET_DIR=C:\\t"            >> $GITHUB_ENV
+          echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
+      # --- Install Rust ------------------------------------------------------
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # --- Build Eldiron -----------------------------------------------------
+      - name: Build (release)
+        working-directory: ${{ matrix.config.working-directory }}
+        run: cargo build --verbose --release --features log
+
+      # --- Package artefacts -------------------------------------------------
+      - name: Package artefacts
+        run: |
+          mkdir -p output
+          7z a -tzip output/${{ matrix.config.bin-name }}-x86_64-pc-windows-msvc.zip /c/t/release/${{ matrix.config.bin-name }}.exe
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.config.bin-name }}
+          path: output
+
+  # ──────────────────────────────── WASM build ────────────────────────────────
+  wasm_build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Build Eldiron -----------------------------------------------------
+      - name: Install build dependencies
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo update
+
+      - name: Build (release)
+        run: cargo run-wasm --release --bin ${{ matrix.config.bin-name }} --build-only
+
+      # --- Package artefacts -------------------------------------------------
+      - name: Preparation
+        run: |
+          mkdir -p output
+          cp -r target/wasm-examples/${{ matrix.config.bin-name }} .
+      - name: Package artefacts (tar.gz)
+        run: |
+          tar -czvf ${{ matrix.config.bin-name }}-wasm32-unknown-unknown.tar.gz ${{ matrix.config.bin-name }}
+          mv ${{ matrix.config.bin-name }}-*.gz output/
+      - name: Package artefacts (zip)
+        run: |
+          7z a -tzip output/${{ matrix.config.bin-name }}-wasm32-unknown-unknown.zip ${{ matrix.config.bin-name }}
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-${{ matrix.config.bin-name }}
+          path: output
+
+  # ─────────────────────────── Linux release creator ──────────────────────────────
+  linux_release_creator:
+    runs-on: ubuntu-latest
+    needs: linux_build
+    env:
+      CARGO_BUNDLE_SKIP_BUILD: true
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-eldiron-creator
+
+      - name: Unpack tarball
+        run: tar -xzvf eldiron-creator-*.gz
+
+      - name: Install cargo-bundle
+        run: cargo install cargo-bundle@0.6.0
+
+      - name: Build .deb package
+        run: |
+          mkdir -p target/release
+          cp eldiron-creator target/release/
+          cd creator
+          cargo bundle --release --bin eldiron-creator
+
+      - name: Rename .deb
+        run: mv target/release/bundle/deb/*.deb Eldiron-Creator.deb
+
+      - name: GitHub release (Linux)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Eldiron-Creator.deb
+            eldiron-creator-*.gz
+
+  # ──────────────────────────── Linux release client ──────────────────────────────
+  linux_release_client:
+    runs-on: ubuntu-latest
+    needs: linux_build
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-eldiron-client
+
+      - name: GitHub release (Linux)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            eldiron-client-*.gz
+
+  # ────────────────────────── Windows release creator ─────────────────────────────
+  windows_release_creator:
+    runs-on: windows-latest
+    needs: windows_build
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-eldiron-creator
+
+      - name: Unpack zip
+        run: 7z x eldiron-creator-*.zip -o.
+
+      - name: Install WiX
+        run: nuget install WiX -Version 3.11.2
+
+      - name: Build MSI installer
+        run: |
+          ./WiX.*/tools/candle.exe -arch x64 -ext WixUIExtension -ext WixUtilExtension \
+            -out eldiron-creator.wixobj ./build/windows/wix/eldiron-creator.wxs
+          ./WiX.*/tools/light.exe -ext WixUIExtension -ext WixUtilExtension \
+            -out Eldiron-Creator.msi -sice:ICE61 -sice:ICE91 eldiron-creator.wixobj
+
+      - name: GitHub release (Windows)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Eldiron-Creator.msi
+            eldiron-creator-*.zip
+
+  # ─────────────────────────── Windows release client ─────────────────────────────
+  windows_release_client:
+    runs-on: windows-latest
+    needs: windows_build
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-eldiron-client
+
+      - name: GitHub release (Windows)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            eldiron-client-*.zip
+
+  # ──────────────────────────────── WASM release ──────────────────────────────────
+  wasm_release:
+    runs-on: ubuntu-latest
+    needs: wasm_build
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        bin-name: ["eldiron-client"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-${{ matrix.bin-name }}
+
+      - name: GitHub release (WASM)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.bin-name }}-*.gz
+            ${{ matrix.bin-name }}-*.zip

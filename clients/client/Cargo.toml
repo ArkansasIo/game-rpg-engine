@@ -1,0 +1,44 @@
+[package]
+name = "eldiron-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The player client for games created with Eldiron."
+keywords = ["game", "rpg", "client", "player", "eldiron"]
+readme = "README.md"
+
+[[bin]]
+name = "eldiron-client"
+path = "src/main.rs"
+
+[dependencies]
+theframework.workspace = true
+rusterix.workspace = true
+
+shared = { path = "../../crates/shared", version = "0.8.100", package = "eldiron-shared" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+vectorize = "0.2.0"
+rust-embed = { version = "8", default-features = true, features = [
+    "include-exclude",
+] }
+png = "0.17"
+fontdue = "0.9.3"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["XmlHttpRequest", "Window"] }
+console_error_panic_hook = "0.1"
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+
+#
+# [lib]
+# name = "rustapi"
+# crate-type = ["staticlib"]
+
+[features]
+log = ["theframework/log"]

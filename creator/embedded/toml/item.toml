@@ -1,0 +1,13 @@
+[attributes]
+
+# Set the tile ID for the item's sprite
+#tile_id = ""
+
+name = "Unnamed"
+
+visible = true
+static = false
+blocking = false
+radius = 0.5
+worth = 0.0
+monetary = false
