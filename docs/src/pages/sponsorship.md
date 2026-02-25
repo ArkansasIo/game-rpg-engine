@@ -1,17 +1,17 @@
-## Eldiron – A Retro RPG Creation Platform
+## NexusStudio – A Retro RPG Creation Platform
 
 Hello,
 
-I’m Markus Moenig, the creator of **Eldiron**, an open-source, cross-platform game creation platform focused on **classic retro RPGs**.
+I’m Markus Moenig, the creator of **NexusStudio**, an open-source, cross-platform game creation platform focused on **classic retro RPGs**.
 
-Eldiron enables creators to build games inspired by timeless RPGs such as *Ultima*, *Baldur’s Gate*, and *Ultima Underworld* — combining the **aesthetic and gameplay depth of classic RPGs** with **modern tooling, performance, and extensibility**.
+NexusStudio enables creators to build games inspired by timeless RPGs such as *Ultima*, *Baldur’s Gate*, and *Ultima Underworld* — combining the **aesthetic and gameplay depth of classic RPGs** with **modern tooling, performance, and extensibility**.
 
 The goal is simple:  
 **Make deep, nostalgic RPG creation accessible again, without sacrificing technical power.**
 
 ---
 
-### What Makes Eldiron Unique
+### What Makes NexusStudio Unique
 
 - **Classic RPG Focus**  
   Built specifically for retro RPG experiences, supporting **top-down, isometric, and first-person perspectives** within a single unified toolset.
@@ -38,7 +38,7 @@ The goal is simple:
 
 ### Release Scope and Long-Term Vision
 
-**Version 1** of Eldiron is focused on delivering a polished and accessible platform for **single-player RPG creation**, ensuring stability, usability, and strong documentation for creators.
+**Version 1** of NexusStudio is focused on delivering a polished and accessible platform for **single-player RPG creation**, ensuring stability, usability, and strong documentation for creators.
 
 Internally, the engine and architecture are already designed with **multiplayer and MMO-style scalability in mind**.  
 Due to testing, infrastructure, and community readiness considerations, these capabilities are planned for **Version 2**, allowing v1 to remain focused and reliable while laying the groundwork for future large-scale online worlds.
@@ -62,7 +62,7 @@ They thrive because they:
 - remain approachable for new creators  
 
 Despite this popularity, **very few modern tools are dedicated specifically to classic RPG creation**.  
-Eldiron aims to fill that gap and become a **go-to platform for retro RPG development**, while also providing a long-term path toward larger online worlds.
+NexusStudio aims to fill that gap and become a **go-to platform for retro RPG development**, while also providing a long-term path toward larger online worlds.
 
 ---
 
@@ -95,11 +95,11 @@ Sponsorship, partnership, or grant support would directly accelerate:
 - Association with a technically ambitious, genre-focused tool  
 - Opportunity to support and help shape an emerging RPG ecosystem  
 
-Eldiron is not just an engine — it is the foundation for a **modern revival of classic RPG creation**, with a clear and realistic growth path toward larger shared worlds.
+NexusStudio is not just an engine — it is the foundation for a **modern revival of classic RPG creation**, with a clear and realistic growth path toward larger shared worlds.
 
 I would be happy to briefly demonstrate the platform and explore whether there is meaningful alignment.
 
 ---
 
 **Markus Moenig**  
-Creator of Eldiron
+Creator of NexusStudio

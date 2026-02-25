@@ -200,7 +200,7 @@
     background-color: var(--ifm-background-surface-color) !important;
 }
 
-/* TOML syntax colors aligned with Eldiron highlighter */
+/* TOML syntax colors aligned with NexusStudio highlighter */
 :root .language-toml .token.comment {
     color: #928374;
     font-style: italic;

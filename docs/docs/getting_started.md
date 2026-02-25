@@ -3,7 +3,7 @@ title: "Getting Started"
 sidebar_position: 1
 ---
 
-![Logo](/img/eldiron-banner.png)
+![Logo](/img/nexusstudio-banner.png)
 
 ## Install Options
 
@@ -11,20 +11,20 @@ sidebar_position: 1
 
 Download binaries from GitHub Releases:
 
-- <https://github.com/markusmoenig/Eldiron/releases>
+- <https://github.com/markusmoenig/NexusStudio/releases>
 
 ### Build From Source
 
 ```bash
-git clone https://github.com/markusmoenig/Eldiron
-cd Eldiron
-cargo run -p eldiron-creator
+git clone https://github.com/markusmoenig/NexusStudio
+cd NexusStudio
+cargo run -p nexusstudio-creator
 ```
 
 Release mode:
 
 ```bash
-cargo run --release -p eldiron-creator
+cargo run --release -p nexusstudio-creator
 ```
 
 ### Linux Dependencies
@@ -37,7 +37,7 @@ Install:
 
 ## First Project Flow
 
-1. Create or open a project in Eldiron Creator.
+1. Create or open a project in NexusStudio Creator.
 2. Build a map with the tile and geometry tools.
 3. Add characters, items, and events.
 4. Configure game behavior in project settings.

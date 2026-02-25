@@ -66,7 +66,7 @@
 		DD219B8629752B1100E978F5 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		DD219B88297672ED00E978F5 /* Keycodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keycodes.swift; sourceTree = "<group>"; };
 		DD28F9352978F1670003766F /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
-		DD2AC08A2978E0300037996A /* Eldiron iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Eldiron iOS.entitlements"; sourceTree = "<group>"; };
+		DD2AC08A2978E0300037996A /* NexusStudio iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "NexusStudio iOS.entitlements"; sourceTree = "<group>"; };
 		DD5B036C290E834C003F7C12 /* RMKTView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RMKTView.swift; sourceTree = "<group>"; };
 		DD5B036E290E83E3003F7C12 /* Math.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Math.swift; sourceTree = "<group>"; };
 		DD5B0374290E8A17003F7C12 /* Texture2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Texture2D.swift; sourceTree = "<group>"; };
@@ -181,7 +181,7 @@
 		DD5FD10328FBD15B00853829 /* TheFramework iOS */ = {
 			isa = PBXGroup;
 			children = (
-				DD2AC08A2978E0300037996A /* Eldiron iOS.entitlements */,
+				DD2AC08A2978E0300037996A /* NexusStudio iOS.entitlements */,
 				DD5FD10428FBD15B00853829 /* AppDelegate.swift */,
 				DD5FD10628FBD15B00853829 /* GameViewController.swift */,
 				DD5FD10828FBD15B00853829 /* Main.storyboard */,
@@ -582,13 +582,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Eldiron iOS/Eldiron iOS.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "NexusStudio iOS/NexusStudio iOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Eldiron;
+				INFOPLIST_KEY_CFBundleDisplayName = NexusStudio;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -608,12 +608,12 @@
 				MARKETING_VERSION = 0.75;
 				OTHER_CODE_SIGN_FLAGS = "";
 				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "";
-				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.eldiron;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.nexusstudio;
 				PRODUCT_NAME = TheFramework;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Eldiron Shared/Bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NexusStudio Shared/Bridge.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -624,13 +624,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Eldiron iOS/Eldiron iOS.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "NexusStudio iOS/NexusStudio iOS.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Eldiron;
+				INFOPLIST_KEY_CFBundleDisplayName = NexusStudio;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -649,12 +649,12 @@
 				);
 				MARKETING_VERSION = 0.75;
 				OTHER_CODE_SIGN_FLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.eldiron;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.nexusstudio;
 				PRODUCT_NAME = TheFramework;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Eldiron Shared/Bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NexusStudio Shared/Bridge.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -679,11 +679,11 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Eldiron;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.NexusStudio;
 				PRODUCT_NAME = TheFramework;
 				SDKROOT = appletvos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Eldiron Shared/Bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NexusStudio Shared/Bridge.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 16.0;
@@ -708,11 +708,11 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.Eldiron;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.NexusStudio;
 				PRODUCT_NAME = TheFramework;
 				SDKROOT = appletvos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Eldiron Shared/Bridge.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "NexusStudio Shared/Bridge.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
 				TVOS_DEPLOYMENT_TARGET = 16.0;

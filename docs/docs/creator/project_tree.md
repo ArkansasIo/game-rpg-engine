@@ -3,7 +3,7 @@ title: "Project Tree"
 sidebar_position: 2
 ---
 
-The project tree, located to the right of the *Eldiron Creator* contains all editable content of your game. Use the **+** and **-** buttons at the bottom of the tree to add or remove content, to the right of these buttons the current content context is displayed as well as **import** and **export** buttons.
+The project tree, located to the right of the *NexusStudio Creator* contains all editable content of your game. Use the **+** and **-** buttons at the bottom of the tree to add or remove content, to the right of these buttons the current content context is displayed as well as **import** and **export** buttons.
 
 Selecting specific content in the project tree will display a corresponding editor dock widget.
 
@@ -53,7 +53,7 @@ Added tiles are shown with a slight gray overlay in the tileset editor, making i
 
 ## Screens
 
-Screens in *Eldiron* define the visible user interface of your game. Paint background decoration with the *Rect* tool and create **Sectors** and apply tiles.
+Screens in *NexusStudio* define the visible user interface of your game. Paint background decoration with the *Rect* tool and create **Sectors** and apply tiles.
 
 See the **Working with Screens** chapter (coming soon).
 

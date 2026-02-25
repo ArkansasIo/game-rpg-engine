@@ -589,7 +589,7 @@ impl Sidebar {
             TheEvent::WidgetResized(id, dim) => {
                 if project.regions.is_empty() && id.name == "PolyView" {
                     if let Some(renderview) = ui.get_render_view("PolyView") {
-                        if let Some(buffer) = ctx.ui.icon("eldiron") {
+                        if let Some(buffer) = ctx.ui.icon("nexusstudio") {
                             let scaled_buffer = buffer.scaled(dim.width, dim.height);
                             *renderview.render_buffer_mut() =
                                 TheRGBABuffer::new(TheDim::new(0, 0, dim.width, dim.height));
@@ -1879,8 +1879,8 @@ impl Sidebar {
                         TheId::named_with_id(id.name.as_str(), Uuid::new_v4()),
                         "Open".into(),
                         TheFileExtension::new(
-                            "Eldiron Tilemap".into(),
-                            vec!["eldiron_tilemap".to_string()],
+                            "NexusStudio Tilemap".into(),
+                            vec!["nexusstudio_tilemap".to_string()],
                         ),
                     );
                     ctx.ui
@@ -1894,8 +1894,8 @@ impl Sidebar {
                                 TheId::named_with_id(id.name.as_str(), tilemap.id),
                                 "Save".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Tilemap".into(),
-                                    vec!["eldiron_tilemap".to_string()],
+                                    "NexusStudio Tilemap".into(),
+                                    vec!["nexusstudio_tilemap".to_string()],
                                 ),
                             );
                             ctx.ui
@@ -1922,8 +1922,8 @@ impl Sidebar {
                                 TheId::named_with_id("Region Import", id),
                                 "Import Region".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Region".into(),
-                                    vec!["eldiron_region".to_string()],
+                                    "NexusStudio Region".into(),
+                                    vec!["nexusstudio_region".to_string()],
                                 ),
                             );
                         }
@@ -1939,8 +1939,8 @@ impl Sidebar {
                             TheId::named_with_id("Character Import", id),
                             "Import Character".into(),
                             TheFileExtension::new(
-                                "Eldiron Character".into(),
-                                vec!["eldiron_character".to_string()],
+                                "NexusStudio Character".into(),
+                                vec!["nexusstudio_character".to_string()],
                             ),
                         );
                     }
@@ -1950,8 +1950,8 @@ impl Sidebar {
                             TheId::named_with_id("Avatar Import", id),
                             "Import Avatar".into(),
                             TheFileExtension::new(
-                                "Eldiron Avatar".into(),
-                                vec!["eldiron_avatar".to_string()],
+                                "NexusStudio Avatar".into(),
+                                vec!["nexusstudio_avatar".to_string()],
                             ),
                         );
                     }
@@ -2004,8 +2004,8 @@ impl Sidebar {
                             TheId::named_with_id("Item Import", id),
                             "Import Item".into(),
                             TheFileExtension::new(
-                                "Eldiron Item".into(),
-                                vec!["eldiron_item".to_string()],
+                                "NexusStudio Item".into(),
+                                vec!["nexusstudio_item".to_string()],
                             ),
                         );
                     }
@@ -2014,8 +2014,8 @@ impl Sidebar {
                         TheId::named_with_id("Tileset Import", Uuid::new_v4()),
                         "Import Tileset".into(),
                         TheFileExtension::new(
-                            "Eldiron Tileset".into(),
-                            vec!["eldiron_tileset".to_string()],
+                            "NexusStudio Tileset".into(),
+                            vec!["nexusstudio_tileset".to_string()],
                         ),
                     );
                 } else if id.name == "Import Screen" {
@@ -2023,8 +2023,8 @@ impl Sidebar {
                         TheId::named_with_id("Screen Import", Uuid::new_v4()),
                         "Import Screen".into(),
                         TheFileExtension::new(
-                            "Eldiron Screen".into(),
-                            vec!["eldiron_screen".to_string()],
+                            "NexusStudio Screen".into(),
+                            vec!["nexusstudio_screen".to_string()],
                         ),
                     );
                 } else if id.name == "Import Font Asset" {
@@ -2032,8 +2032,8 @@ impl Sidebar {
                         TheId::named_with_id("Font Asset Import", Uuid::new_v4()),
                         "Import Font Asset".into(),
                         TheFileExtension::new(
-                            "Eldiron Font Asset".into(),
-                            vec!["eldiron_font_asset".to_string()],
+                            "NexusStudio Font Asset".into(),
+                            vec!["nexusstudio_font_asset".to_string()],
                         ),
                     );
                 } else if id.name == "Project Remove" {
@@ -2206,8 +2206,8 @@ impl Sidebar {
                                 TheId::named_with_id("Region Export", id),
                                 "Export Region".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Region".into(),
-                                    vec!["eldiron_region".to_string()],
+                                    "NexusStudio Region".into(),
+                                    vec!["nexusstudio_region".to_string()],
                                 ),
                             );
                         } else if server_ctx.pc.is_character() {
@@ -2215,8 +2215,8 @@ impl Sidebar {
                                 TheId::named_with_id("Character Export", id),
                                 "Export Character".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Character".into(),
-                                    vec!["eldiron_character".to_string()],
+                                    "NexusStudio Character".into(),
+                                    vec!["nexusstudio_character".to_string()],
                                 ),
                             );
                         } else if matches!(
@@ -2227,8 +2227,8 @@ impl Sidebar {
                                 TheId::named_with_id("Avatar Export", id),
                                 "Export Avatar".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Avatar".into(),
-                                    vec!["eldiron_avatar".to_string()],
+                                    "NexusStudio Avatar".into(),
+                                    vec!["nexusstudio_avatar".to_string()],
                                 ),
                             );
                         } else if server_ctx.pc.is_item() {
@@ -2236,8 +2236,8 @@ impl Sidebar {
                                 TheId::named_with_id("Item Export", id),
                                 "Export Item".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Item".into(),
-                                    vec!["eldiron_item".to_string()],
+                                    "NexusStudio Item".into(),
+                                    vec!["nexusstudio_item".to_string()],
                                 ),
                             );
                         } else if server_ctx.pc.is_tilemap() {
@@ -2245,8 +2245,8 @@ impl Sidebar {
                                 TheId::named_with_id("Tileset Export", id),
                                 "Export Tileset".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Tileset".into(),
-                                    vec!["eldiron_tileset".to_string()],
+                                    "NexusStudio Tileset".into(),
+                                    vec!["nexusstudio_tileset".to_string()],
                                 ),
                             );
                         } else if server_ctx.pc.is_screen() {
@@ -2254,8 +2254,8 @@ impl Sidebar {
                                 TheId::named_with_id("Screen Export", id),
                                 "Export Screen".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Screen".into(),
-                                    vec!["eldiron_screen".to_string()],
+                                    "NexusStudio Screen".into(),
+                                    vec!["nexusstudio_screen".to_string()],
                                 ),
                             );
                         } else if server_ctx.pc.is_asset() {
@@ -2263,8 +2263,8 @@ impl Sidebar {
                                 TheId::named_with_id("Font Asset Export", id),
                                 "Export Font Asset".into(),
                                 TheFileExtension::new(
-                                    "Eldiron Font Asset".into(),
-                                    vec!["eldiron_font_asset".to_string()],
+                                    "NexusStudio Font Asset".into(),
+                                    vec!["nexusstudio_font_asset".to_string()],
                                 ),
                             );
                         }
@@ -2613,8 +2613,8 @@ impl Sidebar {
                         TheId::named_with_id(id.name.as_str(), Uuid::new_v4()),
                         "Open".into(),
                         TheFileExtension::new(
-                            "Eldiron Material".into(),
-                            vec!["eldiron_shader".to_string()],
+                            "NexusStudio Material".into(),
+                            vec!["nexusstudio_shader".to_string()],
                         ),
                     );
                     ctx.ui
@@ -2628,8 +2628,8 @@ impl Sidebar {
                             TheId::named_with_id(id.name.as_str(), curr_tilemap_uuid),
                             "Save".into(),
                             TheFileExtension::new(
-                                "Eldiron Material".into(),
-                                vec!["eldiron_shader".to_string()],
+                                "NexusStudio Material".into(),
+                                vec!["nexusstudio_shader".to_string()],
                             ),
                         );
                         ctx.ui
@@ -2847,7 +2847,7 @@ impl Sidebar {
                     if let Some(rgba_view) = rgba_layout.rgba_view_mut().as_rgba_view() {
                         rgba_view.set_mode(TheRGBAViewMode::Display);
                         rgba_view.set_zoom(1.0);
-                        if let Some(buffer) = ctx.ui.icon("eldiron_map") {
+                        if let Some(buffer) = ctx.ui.icon("nexusstudio_map") {
                             rgba_view.set_buffer(buffer.clone());
                         }
                         rgba_view.set_grid(None);
@@ -3149,7 +3149,7 @@ impl Sidebar {
             }
 
             if let Some(renderview) = ui.get_render_view("PolyView") {
-                if let Some(buffer) = ctx.ui.icon("eldiron") {
+                if let Some(buffer) = ctx.ui.icon("nexusstudio") {
                     let dim = *renderview.dim();
                     let scaled_buffer = buffer.scaled(dim.width, dim.height);
                     renderview.render_buffer_mut().fill(BLACK);
@@ -3167,7 +3167,7 @@ impl Sidebar {
                     if let Some(rgba_view) = rgba_layout.rgba_view_mut().as_rgba_view() {
                         rgba_view.set_mode(TheRGBAViewMode::Display);
                         rgba_view.set_zoom(1.0);
-                        if let Some(buffer) = ctx.ui.icon("eldiron_map") {
+                        if let Some(buffer) = ctx.ui.icon("nexusstudio_map") {
                             rgba_view.set_buffer(buffer.clone());
                         }
                         rgba_view.set_grid(None);

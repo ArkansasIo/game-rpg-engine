@@ -491,7 +491,7 @@ impl Editor {
             .ok_or_else(|| "Save the project first to export compile output.".to_string())?;
 
         let mut output_path = source_path.clone();
-        output_path.set_extension("runtime.eldiron.json");
+        output_path.set_extension("runtime.nexusstudio.json");
 
         let response = self.compile_from_editor_input(CompileFromEditorInputRequest {
             output_path: Some(output_path.to_string_lossy().into_owned()),
@@ -608,13 +608,13 @@ impl TheTrait for Editor {
             feature = "self-update",
             not(target_os = "macos")
         ))]
-        let self_updater = SelfUpdater::new("markusmoenig", "Eldiron", "eldiron-creator");
+        let self_updater = SelfUpdater::new("markusmoenig", "NexusStudio", "nexusstudio-creator");
         #[cfg(all(
             not(target_arch = "wasm32"),
             feature = "self-update",
             target_os = "macos"
         ))]
-        let self_updater = SelfUpdater::new("markusmoenig", "Eldiron", "Eldiron-Creator.app");
+        let self_updater = SelfUpdater::new("markusmoenig", "NexusStudio", "NexusStudio-Creator.app");
 
         Self {
             project,
@@ -1900,7 +1900,7 @@ impl TheTrait for Editor {
                 TheEvent::Custom(id, value) => {
                     if id.name == "Show Help" {
                         if let TheValue::Text(url) = value {
-                            _ = open::that(format!("https://www.eldiron.com/{}", url));
+                            _ = open::that(format!("https://www.nexusstudio.com/{}", url));
                             ctx.ui
                                 .set_widget_state("Help".to_string(), TheWidgetState::None);
                             ctx.ui.clear_hover();
@@ -2616,7 +2616,7 @@ impl TheTrait for Editor {
                         self.sidebar.startup = true;
                         self.project = Project::default();
 
-                        if let Some(bytes) = crate::Embedded::get("starter_project.eldiron") {
+                        if let Some(bytes) = crate::Embedded::get("starter_project.nexusstudio") {
                             if let Ok(project_string) = std::str::from_utf8(bytes.data.as_ref()) {
                                 if let Ok(project) =
                                     serde_json::from_str(&project_string.to_string())
@@ -2669,13 +2669,13 @@ impl TheTrait for Editor {
                             "New project successfully initialized.".to_string(),
                         ));
                     } else if id.name == "Logo" {
-                        _ = open::that("https://eldiron.com");
+                        _ = open::that("https://nexusstudio.com");
                         ctx.ui
                             .set_widget_state("Logo".to_string(), TheWidgetState::None);
                         ctx.ui.clear_hover();
                         redraw = true;
                     } else if id.name == "Patreon" {
-                        _ = open::that("https://www.patreon.com/eldiron");
+                        _ = open::that("https://www.patreon.com/nexusstudio");
                         ctx.ui
                             .set_widget_state("Patreon".to_string(), TheWidgetState::None);
                         ctx.ui.clear_hover();
@@ -2733,7 +2733,7 @@ impl TheTrait for Editor {
                         ctx.ui.open_file_requester(
                             TheId::named_with_id(id.name.as_str(), Uuid::new_v4()),
                             "Open".into(),
-                            TheFileExtension::new("Eldiron".into(), vec!["eldiron".to_string()]),
+                            TheFileExtension::new("NexusStudio".into(), vec!["nexusstudio".to_string()]),
                         );
                         ctx.ui
                             .set_widget_state("Open".to_string(), TheWidgetState::None);
@@ -2771,7 +2771,7 @@ impl TheTrait for Editor {
                         ctx.ui.save_file_requester(
                             TheId::named_with_id(id.name.as_str(), Uuid::new_v4()),
                             "Save".into(),
-                            TheFileExtension::new("Eldiron".into(), vec!["eldiron".to_string()]),
+                            TheFileExtension::new("NexusStudio".into(), vec!["nexusstudio".to_string()]),
                         );
                         ctx.ui
                             .set_widget_state("Save As".to_string(), TheWidgetState::None);
@@ -3560,11 +3560,11 @@ impl TheTrait for Editor {
     }
 }
 
-pub trait EldironEditor {
+pub trait NexusStudioEditor {
     fn update_server_state_icons(&mut self, ui: &mut TheUI);
 }
 
-impl EldironEditor for Editor {
+impl NexusStudioEditor for Editor {
     fn update_server_state_icons(&mut self, ui: &mut TheUI) {
         let rusterix = RUSTERIX.read().unwrap();
         if rusterix.server.state == rusterix::ServerState::Running {

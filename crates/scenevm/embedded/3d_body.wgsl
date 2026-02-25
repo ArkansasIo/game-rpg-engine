@@ -1,4 +1,4 @@
-// PBR Ray-Traced Shader for Eldiron
+// PBR Ray-Traced Shader for NexusStudio
 // Supports: Cook-Torrance BRDF, ray-traced shadows, AO, full material system, and bump mapping
 //
 // Uniforms (gp0-gp9):

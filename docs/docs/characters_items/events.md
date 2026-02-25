@@ -3,7 +3,7 @@ title: "Events"
 sidebar_position: 6
 ---
 
-This chapter lists all available **events** that can be received by characters and items in Eldiron.
+This chapter lists all available **events** that can be received by characters and items in NexusStudio.
 
 Events are categorized as:
 

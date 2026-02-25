@@ -149,20 +149,20 @@ const isProd = process.env.NODE_ENV === "production";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Eldiron",
+  title: "NexusStudio",
   tagline: "Retro RPG Creator",
   favicon: "img/favicon.svg",
 
   // Set the production url of your site here
-  url: isGhPages ? "https://markusmoenig.github.io" : "https://eldiron.com",
+  url: isGhPages ? "https://markusmoenig.github.io" : "https://nexusstudio.com",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: isGhPages ? "/Eldiron/" : "/",
+  baseUrl: isGhPages ? "/NexusStudio/" : "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "markusmoenig", // Usually your GitHub org/user name.
-  projectName: "Eldiron-Docs", // Usually your repo name.
+  projectName: "NexusStudio-Docs", // Usually your repo name.
 
   onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
@@ -223,14 +223,14 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: "img/eldiron-banner.png",
+      image: "img/nexusstudio-banner.png",
       colorMode: {
         respectPrefersColorScheme: true,
       },
       navbar: {
         title: "Retro RPG Creator",
         logo: {
-          alt: "Eldiron Logo",
+          alt: "NexusStudio Logo",
           src: "img/logo-black.svg",
           srcDark: "img/logo-white.svg",
         },
@@ -249,7 +249,7 @@ const config = {
             type: "html",
             position: "right",
             value: `
-              <a href="https://discord.gg/ZrNj6baSZU" class="navbar-icon" title="Eldiron Discord">
+              <a href="https://discord.gg/ZrNj6baSZU" class="navbar-icon" title="NexusStudio Discord">
                 <img src="https://img.shields.io/badge/Discord-Join%20Server-458588?style=flat&logo=discord" alt="Join Discord"/>
               </a>
             `,
@@ -258,7 +258,7 @@ const config = {
             type: "html",
             position: "right",
             value: `
-              <a href="https://www.patreon.com/eldiron" class="navbar-icon" title="Support on Patreon">
+              <a href="https://www.patreon.com/nexusstudio" class="navbar-icon" title="Support on Patreon">
                 <img src="https://img.shields.io/badge/Patreon-Support-458588?style=flat&logo=patreon" alt="Support on Patreon"/>
               </a>
             `,
@@ -267,7 +267,7 @@ const config = {
             type: "html",
             position: "right",
             value: `
-              <a href="https://www.youtube.com/channel/UCCmrO356zLQv_m8dPEqBUfA" class="navbar-icon" title="Eldiron YouTube Channel">
+              <a href="https://www.youtube.com/channel/UCCmrO356zLQv_m8dPEqBUfA" class="navbar-icon" title="NexusStudio YouTube Channel">
                 <img src="https://img.shields.io/youtube/channel/subscribers/UCCmrO356zLQv_m8dPEqBUfA?style=flat&color=458588&logo=youtube&label=Subscribe" alt="YouTube subscribers"/>
               </a>
             `,
@@ -276,8 +276,8 @@ const config = {
             type: "html",
             position: "right",
             value: `
-              <a href="https://github.com/markusmoenig/Eldiron" class="navbar-icon" title="GitHub Repository">
-                <img src="https://img.shields.io/github/stars/markusmoenig/Eldiron?style=flat&color=458588&logo=github" alt="GitHub stars"/>
+              <a href="https://github.com/markusmoenig/NexusStudio" class="navbar-icon" title="GitHub Repository">
+                <img src="https://img.shields.io/github/stars/markusmoenig/NexusStudio?style=flat&color=458588&logo=github" alt="GitHub stars"/>
               </a>
             `,
           },
@@ -285,7 +285,7 @@ const config = {
             type: "html",
             position: "right",
             value: `
-              <a href="https://github.com/markusmoenig/Eldiron/releases" class="navbar-icon" title="Download Eldiron">
+              <a href="https://github.com/markusmoenig/NexusStudio/releases" class="navbar-icon" title="Download NexusStudio">
                 <i class="fas fa-download"></i>
               </a>
             `,
@@ -312,7 +312,7 @@ const config = {
               },
               {
                 label: "X",
-                to: "https://x.com/EldironRPG",
+                to: "https://x.com/NexusStudioRPG",
               },
             ],
           },
@@ -321,7 +321,7 @@ const config = {
             items: [
               {
                 label: "Patreon",
-                to: "https://patreon.com/eldiron",
+                to: "https://patreon.com/nexusstudio",
               },
               {
                 label: "GitHub Sponsors",
@@ -342,11 +342,11 @@ const config = {
               },
               {
                 label: "Downloads",
-                to: "https://github.com/markusmoenig/Eldiron/releases",
+                to: "https://github.com/markusmoenig/NexusStudio/releases",
               },
               {
                 label: "GitHub",
-                to: "https://github.com/markusmoenig/Eldiron",
+                to: "https://github.com/markusmoenig/NexusStudio",
               },
             ],
           },

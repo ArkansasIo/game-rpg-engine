@@ -32,7 +32,7 @@ The **Python class name** is also the **character template name**.
 
 ## Events
 
-Eldiron uses **events** to trigger actions.
+NexusStudio uses **events** to trigger actions.
 
 Events are categorized into:
 - **System Events** – Triggered by the game engine.
@@ -140,7 +140,7 @@ Let's start with the **simplest approach**: opening a door when a character **bu
 ### **Example: Auto-Opening Door**
 
 ```python
-# Taken from https://github.com/markusmoenig/Eldiron/blob/master/examples/Harbor.eldiron
+# Taken from https://github.com/markusmoenig/NexusStudio/blob/master/examples/Harbor.nexusstudio
 
 class Door:
 
@@ -183,7 +183,7 @@ Opening a **locked gate** works similarly to opening a **door**, but with one ke
 - On the `bumped_by_entity` event, the script checks if the **character has the correct key** in their inventory.
 
 ```python
-# Taken from https://github.com/markusmoenig/Eldiron/blob/master/examples/Harbor.eldiron
+# Taken from https://github.com/markusmoenig/NexusStudio/blob/master/examples/Harbor.nexusstudio
 
 class Gate:
 

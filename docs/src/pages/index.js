@@ -32,12 +32,12 @@ function HomepageHeader() {
 
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
-  const bannerUrl = useBaseUrl("img/eldiron-banner.png");
+  const bannerUrl = useBaseUrl("img/nexusstudio-banner.png");
 
   return (
     <Layout
       title={`Retro RPG Creator`}
-      description="Eldiron is a retro RPG game creator for 2D, isometric, and first-person adventures. Build your own classic RPG worlds with powerful tools and cross-platform freedom."
+      description="NexusStudio is a retro RPG game creator for 2D, isometric, and first-person adventures. Build your own classic RPG worlds with powerful tools and cross-platform freedom."
     >
       <main>
         {/* Carousel at the top */}
@@ -194,7 +194,7 @@ export default function Home() {
               margin: "0 auto 1rem",
             }}
           >
-            A heartfelt thank you to everyone supporting Eldiron via Patreon and
+            A heartfelt thank you to everyone supporting NexusStudio via Patreon and
             GitHub Sponsors. Your support helps me keep building and improving
             this project.
           </p>
@@ -280,7 +280,7 @@ export default function Home() {
         <section style={{ padding: "2rem 1rem", textAlign: "center" }}>
           <img
             src={bannerUrl}
-            alt="Eldiron Banner"
+            alt="NexusStudio Banner"
             style={{
               display: "block",
               margin: "0 auto",

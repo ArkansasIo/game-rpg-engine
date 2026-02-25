@@ -56,8 +56,8 @@ impl Action for ImportVCode {
             TheId::named_with_id("actionImportVisualCode", Uuid::new_v4()),
             "Import Visual Code".into(),
             TheFileExtension::new(
-                "Eldiron Visual Code".into(),
-                vec!["eldiron_vcode".to_string()],
+                "NexusStudio Visual Code".into(),
+                vec!["nexusstudio_vcode".to_string()],
             ),
         );
     }

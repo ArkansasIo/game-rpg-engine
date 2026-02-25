@@ -1190,82 +1190,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
-name = "eldiron-client"
-version = "0.8.100"
-dependencies = [
- "console_error_panic_hook",
- "eldiron-shared",
- "fontdue",
- "instant",
- "png 0.17.16",
- "rust-embed",
- "rusterix",
- "serde",
- "serde_json",
- "theframework",
- "vectorize",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "eldiron-creator"
-version = "0.8.100"
-dependencies = [
- "arboard",
- "codegridfx",
- "eldiron-shared",
- "fontdue",
- "i18n-embed",
- "i18n-embed-fl",
- "indexmap 2.13.0",
- "lazy_static",
- "open",
- "png 0.18.0",
- "rand",
- "rayon",
- "regex",
- "rodio",
- "rust-embed",
- "rusteria",
- "rusterix",
- "scenevm",
- "self_update",
- "serde",
- "serde_json",
- "theframework",
- "toml 0.8.23",
- "vectorize",
- "vek",
-]
-
-[[package]]
-name = "eldiron-shared"
-version = "0.8.100"
-dependencies = [
- "codegridfx",
- "earcutr",
- "fontdue",
- "indexmap 2.13.0",
- "line_drawing",
- "noiselib",
- "num_cpus",
- "rand",
- "rayon",
- "rect_packer",
- "regex",
- "rusterix",
- "scenevm",
- "serde",
- "serde_json",
- "theframework",
- "vectorize",
- "vek",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "encode_unicode"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2885,6 +2809,82 @@ name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
+
+[[package]]
+name = "nexusstudio-client"
+version = "0.8.100"
+dependencies = [
+ "console_error_panic_hook",
+ "fontdue",
+ "instant",
+ "nexusstudio-shared",
+ "png 0.17.16",
+ "rust-embed",
+ "rusterix",
+ "serde",
+ "serde_json",
+ "theframework",
+ "vectorize",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "nexusstudio-creator"
+version = "0.8.100"
+dependencies = [
+ "arboard",
+ "codegridfx",
+ "fontdue",
+ "i18n-embed",
+ "i18n-embed-fl",
+ "indexmap 2.13.0",
+ "lazy_static",
+ "nexusstudio-shared",
+ "open",
+ "png 0.18.0",
+ "rand",
+ "rayon",
+ "regex",
+ "rodio",
+ "rust-embed",
+ "rusteria",
+ "rusterix",
+ "scenevm",
+ "self_update",
+ "serde",
+ "serde_json",
+ "theframework",
+ "toml 0.8.23",
+ "vectorize",
+ "vek",
+]
+
+[[package]]
+name = "nexusstudio-shared"
+version = "0.8.100"
+dependencies = [
+ "codegridfx",
+ "earcutr",
+ "fontdue",
+ "indexmap 2.13.0",
+ "line_drawing",
+ "noiselib",
+ "num_cpus",
+ "rand",
+ "rayon",
+ "rect_packer",
+ "regex",
+ "rusterix",
+ "scenevm",
+ "serde",
+ "serde_json",
+ "theframework",
+ "vectorize",
+ "vek",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "noiselib"

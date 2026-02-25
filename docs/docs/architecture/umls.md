@@ -3,7 +3,7 @@ title: "UMLs"
 sidebar_position: 1
 ---
 
-# Eldiron UMLs
+# NexusStudio UMLs
 
 This page documents core system relationships and runtime flows.
 

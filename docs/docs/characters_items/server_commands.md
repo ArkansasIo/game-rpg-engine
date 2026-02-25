@@ -5,7 +5,7 @@ sidebar_position: 7
 
 ## Commands
 
-This chapter lists all available scripting **commands** for Eldiron, used by characters and items.
+This chapter lists all available scripting **commands** for NexusStudio, used by characters and items.
 
 ---
 

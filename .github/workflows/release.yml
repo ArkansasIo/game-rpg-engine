@@ -12,13 +12,13 @@ jobs:
     strategy:
       matrix:
         config:
-          - { working-directory: "creator", bin-name: "eldiron-creator" }
-          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+          - { working-directory: "creator", bin-name: "nexusstudio-creator" }
+          - { working-directory: "clients/client", bin-name: "nexusstudio-client" }
 
     steps:
       - uses: actions/checkout@v4
 
-      # --- Build Eldiron -----------------------------------------------------
+      # --- Build NexusStudio -----------------------------------------------------
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -51,8 +51,8 @@ jobs:
     strategy:
       matrix:
         config:
-          - { working-directory: "creator", bin-name: "eldiron-creator" }
-          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+          - { working-directory: "creator", bin-name: "nexusstudio-creator" }
+          - { working-directory: "clients/client", bin-name: "nexusstudio-client" }
 
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +70,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      # --- Build Eldiron -----------------------------------------------------
+      # --- Build NexusStudio -----------------------------------------------------
       - name: Build (release)
         working-directory: ${{ matrix.config.working-directory }}
         run: cargo build --verbose --release --features log
@@ -93,12 +93,12 @@ jobs:
     strategy:
       matrix:
         config:
-          - { working-directory: "clients/client", bin-name: "eldiron-client" }
+          - { working-directory: "clients/client", bin-name: "nexusstudio-client" }
 
     steps:
       - uses: actions/checkout@v4
 
-      # --- Build Eldiron -----------------------------------------------------
+      # --- Build NexusStudio -----------------------------------------------------
       - name: Install build dependencies
         run: |
           rustup target add wasm32-unknown-unknown
@@ -141,10 +141,10 @@ jobs:
       - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
-          name: linux-eldiron-creator
+          name: linux-nexusstudio-creator
 
       - name: Unpack tarball
-        run: tar -xzvf eldiron-creator-*.gz
+        run: tar -xzvf nexusstudio-creator-*.gz
 
       - name: Install cargo-bundle
         run: cargo install cargo-bundle@0.6.0
@@ -152,19 +152,19 @@ jobs:
       - name: Build .deb package
         run: |
           mkdir -p target/release
-          cp eldiron-creator target/release/
+          cp nexusstudio-creator target/release/
           cd creator
-          cargo bundle --release --bin eldiron-creator
+          cargo bundle --release --bin nexusstudio-creator
 
       - name: Rename .deb
-        run: mv target/release/bundle/deb/*.deb Eldiron-Creator.deb
+        run: mv target/release/bundle/deb/*.deb NexusStudio-Creator.deb
 
       - name: GitHub release (Linux)
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            Eldiron-Creator.deb
-            eldiron-creator-*.gz
+            NexusStudio-Creator.deb
+            nexusstudio-creator-*.gz
 
   # ──────────────────────────── Linux release client ──────────────────────────────
   linux_release_client:
@@ -179,13 +179,13 @@ jobs:
       - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
-          name: linux-eldiron-client
+          name: linux-nexusstudio-client
 
       - name: GitHub release (Linux)
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            eldiron-client-*.gz
+            nexusstudio-client-*.gz
 
   # ────────────────────────── Windows release creator ─────────────────────────────
   windows_release_creator:
@@ -203,10 +203,10 @@ jobs:
       - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-eldiron-creator
+          name: windows-nexusstudio-creator
 
       - name: Unpack zip
-        run: 7z x eldiron-creator-*.zip -o.
+        run: 7z x nexusstudio-creator-*.zip -o.
 
       - name: Install WiX
         run: nuget install WiX -Version 3.11.2
@@ -214,16 +214,16 @@ jobs:
       - name: Build MSI installer
         run: |
           ./WiX.*/tools/candle.exe -arch x64 -ext WixUIExtension -ext WixUtilExtension \
-            -out eldiron-creator.wixobj ./build/windows/wix/eldiron-creator.wxs
+            -out nexusstudio-creator.wixobj ./build/windows/wix/nexusstudio-creator.wxs
           ./WiX.*/tools/light.exe -ext WixUIExtension -ext WixUtilExtension \
-            -out Eldiron-Creator.msi -sice:ICE61 -sice:ICE91 eldiron-creator.wixobj
+            -out NexusStudio-Creator.msi -sice:ICE61 -sice:ICE91 nexusstudio-creator.wixobj
 
       - name: GitHub release (Windows)
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            Eldiron-Creator.msi
-            eldiron-creator-*.zip
+            NexusStudio-Creator.msi
+            nexusstudio-creator-*.zip
 
   # ─────────────────────────── Windows release client ─────────────────────────────
   windows_release_client:
@@ -241,13 +241,13 @@ jobs:
       - name: Download artefacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-eldiron-client
+          name: windows-nexusstudio-client
 
       - name: GitHub release (Windows)
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            eldiron-client-*.zip
+            nexusstudio-client-*.zip
 
   # ──────────────────────────────── WASM release ──────────────────────────────────
   wasm_release:
@@ -257,7 +257,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        bin-name: ["eldiron-client"]
+        bin-name: ["nexusstudio-client"]
 
     steps:
       - uses: actions/checkout@v4

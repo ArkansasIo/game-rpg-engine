@@ -22,7 +22,7 @@ impl TheTrait for Client {
     where
         Self: Sized,
     {
-        let game_name = "Eldiron Adventure";
+        let game_name = "NexusStudio Adventure";
         let project = Project::default();
         let rusterix = Rusterix::default();
 
@@ -284,7 +284,7 @@ impl ClientTrait for Client {
 
     /// Load project
     fn load_project(&mut self, path: PathBuf) -> Project {
-        // On WASM, do a network request to "game.eldiron" in the same dir as the served page
+        // On WASM, do a network request to "game.nexusstudio" in the same dir as the served page
         #[cfg(target_arch = "wasm32")]
         {
             use wasm_bindgen::JsCast;
@@ -292,7 +292,7 @@ impl ClientTrait for Client {
 
             // Try to fetch from the same directory as the served page.
             let xhr = XmlHttpRequest::new().expect("XmlHttpRequest not available");
-            xhr.open_with_async("GET", "game.eldiron", false)
+            xhr.open_with_async("GET", "game.nexusstudio", false)
                 .expect("failed to open XHR");
             xhr.send().expect("failed to send XHR");
 

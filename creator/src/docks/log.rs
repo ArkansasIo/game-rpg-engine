@@ -27,7 +27,7 @@ impl Dock for LogDock {
         if let Some(bytes) = crate::Embedded::get("parser/log.sublime-syntax") {
             if let Ok(source) = std::str::from_utf8(bytes.data.as_ref()) {
                 textedit.add_syntax_from_string(source);
-                textedit.set_code_type("Eldiron Log");
+                textedit.set_code_type("NexusStudio Log");
             }
         }
 

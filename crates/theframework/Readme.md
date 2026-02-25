@@ -1,6 +1,6 @@
 # TheFramework
 
-TheFramework is the UI and application framework for [Eldiron](https://github.com/markusmoenig/Eldiron).
+TheFramework is the UI and application framework for [
 
 It provides an abstraction layer for applications and games. You create your app inside a trait, pass it to TheFramework, and it runs on all supported backends.
 

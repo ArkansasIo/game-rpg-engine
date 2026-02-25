@@ -1,6 +1,6 @@
 # Rusterix
 
-Rusterix is the core game engine powering [Eldiron](https://github.com/markusmoenig/Eldiron), an open-source creator for classic RPGs.
+Rusterix is the core game engine powering [NexusStudio](https://github.com/markusmoenig/NexusStudio), an open-source creator for classic RPGs.
 
 ## Overview
 

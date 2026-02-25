@@ -1,6 +1,6 @@
 # SceneVM
 
-SceneVM is a GPU-based rendering engine built on [wgpu](https://wgpu.rs/), powering the visual pipeline of [Eldiron](https://github.com/markusmoenig/Eldiron). It supersedes the earlier software rasterizer in [Rusterix](https://crates.io/crates/rusterix).
+SceneVM is a GPU-based rendering engine built on [wgpu](https://wgpu.rs/), powering the visual pipeline of [NexusStudio](https://github.com/markusmoenig/NexusStudio). It supersedes the earlier software rasterizer in [Rusterix](https://crates.io/crates/rusterix).
 
 ## Overview
 

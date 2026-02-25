@@ -3,7 +3,7 @@ title: "Attributes"
 sidebar_position: 5
 ---
 
-This chapter lists all supported **attributes** for characters and items in Eldiron.  
+This chapter lists all supported **attributes** for characters and items in NexusStudio.  
 
 Attributes can be applied to characters, items, or both.
 

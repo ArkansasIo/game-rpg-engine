@@ -2,11 +2,11 @@
 
 Rusteria is a fast, shader-like programming language designed for procedural texture and material generation. It compiles to a stack-based bytecode VM and executes shade functions in parallel using [rayon](https://crates.io/crates/rayon).
 
-Rusteria is part of the [Eldiron](https://github.com/markusmoenig/Eldiron) project, where it drives procedural material generation for the game engine's rendering pipeline.
+Rusteria is part of the [NexusStudio](https://github.com/markusmoenig/NexusStudio) project, where it drives procedural material generation for the game engine's rendering pipeline.
 
 | Marble | Wood | Wood Ring |
 |--------|------|-----------|
-| ![Marble](https://raw.githubusercontent.com/markusmoenig/Eldiron/master/crates/rusterix/rusteria/examples/marble.png) | ![Wood](https://raw.githubusercontent.com/markusmoenig/Eldiron/master/crates/rusterix/rusteria/examples/wood.png) | ![Wood Ring](https://raw.githubusercontent.com/markusmoenig/Eldiron/master/crates/rusterix/rusteria/examples/wood_ring.png) |
+| ![Marble](https://raw.githubusercontent.com/markusmoenig/NexusStudio/master/crates/rusterix/rusteria/examples/marble.png) | ![Wood](https://raw.githubusercontent.com/markusmoenig/NexusStudio/master/crates/rusterix/rusteria/examples/wood.png) | ![Wood Ring](https://raw.githubusercontent.com/markusmoenig/NexusStudio/master/crates/rusterix/rusteria/examples/wood_ring.png) |
 
 ## Features
 

@@ -4,17 +4,17 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>Eldiron iOS.xcscheme_^#shared#^_</key>
+		<key>NexusStudio iOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>Eldiron macOS.xcscheme_^#shared#^_</key>
+		<key>NexusStudio macOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
-		<key>Eldiron tvOS.xcscheme_^#shared#^_</key>
+		<key>NexusStudio tvOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>2</integer>

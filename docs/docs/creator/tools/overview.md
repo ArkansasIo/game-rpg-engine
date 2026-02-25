@@ -3,7 +3,7 @@ title: "Overview"
 sidebar_position: 1
 ---
 
-This chapter and its sub-sections describe the tools available in **Eldiron Creator**.
+This chapter and its sub-sections describe the tools available in **NexusStudio Creator**.
 
 ## Map Tools Specifics
 

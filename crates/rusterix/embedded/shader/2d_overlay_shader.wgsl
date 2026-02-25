@@ -57,7 +57,7 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3<u32>) {
         let closest_mul_main = grid_size * round(rel_p / grid_size);
         let dist = abs(rel_p - closest_mul_main);
 
-        // Colors (match Eldiron defaults)
+        // Colors (match NexusStudio defaults)
         let bg_color       = vec4<f32>(0.05, 0.05, 0.05, 1.0);
         let line_color     = vec4<f32>(0.15, 0.15, 0.15, 1.0);
         let sub_line_color = vec4<f32>(0.11, 0.11, 0.11, 1.0);

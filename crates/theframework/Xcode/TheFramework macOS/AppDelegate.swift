@@ -150,7 +150,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openDocs() {
-        NSWorkspace.shared.open(URL(string: "https://eldiron.com/docs")!)
+        NSWorkspace.shared.open(URL(string: "https://nexusstudio.com/docs")!)
     }
 
     @available(macOS 11.0, *)

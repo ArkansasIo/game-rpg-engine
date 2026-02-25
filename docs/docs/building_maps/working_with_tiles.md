@@ -5,7 +5,7 @@ sidebar_position: 1
 
 ## Importing Tilesets
 
-Tiles are the basic building block of your Eldiron maps, a basic Ultima 4 style tileset is included in the starter project of Eldiron.
+Tiles are the basic building block of your NexusStudio maps, a basic Ultima 4 style tileset is included in the starter project of NexusStudio.
 
 You can add more tilesets to your project by clicking the **+** button in the bottom of the project tree and select **Add Tileset**.
 

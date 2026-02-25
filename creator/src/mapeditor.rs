@@ -35,7 +35,7 @@ impl MapEditor {
         // if let Some(rgba_view) = region_editor.rgba_view_mut().as_rgba_view() {
         //     rgba_view.set_mode(TheRGBAViewMode::Display);
 
-        //     if let Some(buffer) = ctx.ui.icon("eldiron_map") {
+        //     if let Some(buffer) = ctx.ui.icon("nexusstudio_map") {
         //         rgba_view.set_buffer(buffer.clone());
         //     }
 

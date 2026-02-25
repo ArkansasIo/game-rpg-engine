@@ -455,7 +455,7 @@ impl SceneHandler {
         _animation_frame: usize,
         assets: &Assets,
     ) {
-        // Advance local frame counter each render call; Eldiron renders at a fixed 30 FPS.
+        // Advance local frame counter each render call; NexusStudio renders at a fixed 30 FPS.
         self.frame_counter = self.frame_counter.wrapping_add(1);
 
         self.vm.execute(Atom::ClearDynamics);

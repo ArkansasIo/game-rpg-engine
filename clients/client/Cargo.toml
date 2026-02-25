@@ -1,24 +1,24 @@
 [package]
-name = "eldiron-client"
+name = "nexusstudio-client"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "The player client for games created with Eldiron."
-keywords = ["game", "rpg", "client", "player", "eldiron"]
+description = "The player client for games created with NexusStudio."
+keywords = ["game", "rpg", "client", "player", "nexusstudio"]
 readme = "README.md"
 
 [[bin]]
-name = "eldiron-client"
+name = "nexusstudio-client"
 path = "src/main.rs"
 
 [dependencies]
 theframework.workspace = true
 rusterix.workspace = true
 
-shared = { path = "../../crates/shared", version = "0.8.100", package = "eldiron-shared" }
+shared = { path = "../../crates/shared", version = "0.8.100", package = "nexusstudio-shared" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 vectorize = "0.2.0"

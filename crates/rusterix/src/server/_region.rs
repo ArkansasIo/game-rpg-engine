@@ -3543,7 +3543,7 @@ fn id(vm: &VirtualMachine) -> u32 {
     .unwrap()
 }
 
-/// Used only for local, Eldiron Creator emitted commands.
+/// Used only for local, NexusStudio Creator emitted commands.
 fn player_action(action: String, vm: &VirtualMachine) {
     if let Ok(parsed_action) = action.parse::<EntityAction>() {
         with_regionctx(get_region_id(vm).unwrap(), |ctx: &mut RegionCtx| {

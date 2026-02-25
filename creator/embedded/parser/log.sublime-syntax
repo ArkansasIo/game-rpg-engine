@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
-name: Eldiron Log
-scope: source.eldironlog
+name: NexusStudio Log
+scope: source.nexusstudiolog
 
 contexts:
   main:

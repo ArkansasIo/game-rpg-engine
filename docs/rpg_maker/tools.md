@@ -1,6 +1,6 @@
 # RPG Maker Tools
 
-This document describes the RPG Maker-style tools available in the Eldiron Editor.
+This document describes the RPG Maker-style tools available in the NexusStudio Editor.
 
 - Map Editor
 - Character Editor

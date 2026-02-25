@@ -56,8 +56,8 @@ impl Action for ExportVCode {
             TheId::named_with_id("actionExportVisualCode", Uuid::new_v4()),
             "Export Visual Code".into(),
             TheFileExtension::new(
-                "Eldiron Visual Code".into(),
-                vec!["eldiron_vcode".to_string()],
+                "NexusStudio Visual Code".into(),
+                vec!["nexusstudio_vcode".to_string()],
             ),
         );
     }

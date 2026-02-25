@@ -4,14 +4,14 @@
 
 NexusStudio supports **2D** (like Ultima 4/5), **isometric**, and **first-person** RPG workflows, allowing designers to craft a wide range of game experiences.
 
-![NexusStudio - Vertex Engine Editor](images/eldironv0.8.100.png)
+![NexusStudio - Vertex Engine Editor](images/
 
 NexusStudio is open-source and licensed under the **MIT License**.
 
-For a more detailed feature overview please visit [Eldiron.com](https://eldiron.com) or the [GitHub repository](https://github.com/markusmoenig/Eldiron).
+For a more detailed feature overview please visit [.com](https:// or the [GitHub repository](https://github.com/).
 
 ```bash
-cargo install eldiron-creator
+cargo install nexusstudio-creator
 ```
 
 ## License

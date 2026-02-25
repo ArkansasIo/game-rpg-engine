@@ -1,6 +1,6 @@
 # RPG Maker Menus
 
-This document describes the RPG Maker-style menus in the Eldiron Editor.
+This document describes the RPG Maker-style menus in the NexusStudio Editor.
 
 - Main Menu
 - Tools Menu

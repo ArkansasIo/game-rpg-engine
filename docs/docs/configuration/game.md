@@ -3,7 +3,7 @@ title: "Game Configuration"
 sidebar_position: 1
 ---
 
-You can configure **Eldiron** by selecting the **Game -> Settings** item in the **project tree**.
+You can configure **NexusStudio** by selecting the **Game -> Settings** item in the **project tree**.
 
 ---
 
@@ -42,7 +42,7 @@ health = "HP"
   - A **higher FPS** results in **smoother gameplay**, but increases CPU usage.
 
 - **`game_tick_ms`**
-  - Sets the **milliseconds per game tick**, which is **Eldiron’s internal clock**.
+  - Sets the **milliseconds per game tick**, which is **NexusStudio’s internal clock**.
   - Events, actions, and player interactions are processed **each tick**.
   - Default: `250 ms`, meaning **4 ticks per second** (suitable for most games).
 
@@ -57,7 +57,7 @@ health = "HP"
   - `"never"` → Entities **never block each other**.
 
 - **`auto_create_player`**
-  If `true`, Eldiron will automatically **create a player instance** in the map if one is defined.
+  If `true`, NexusStudio will automatically **create a player instance** in the map if one is defined.
   Useful for quickly testing and building games without needing to implement a full character creation process.
   If `false`, the player must be created manually—typically using a **screen** and **user input flow**.
 
@@ -67,7 +67,7 @@ health = "HP"
 
 - **`start_screen`**
   The **name of the screen** to load on startup.
-  If empty, Eldiron will display a black screen.
+  If empty, NexusStudio will display a black screen.
 
 - **`gear_slots`**
   The **valid gear slots** of items. Items can define it's gear slot by setting `slot` in the data tool.

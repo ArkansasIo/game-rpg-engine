@@ -2,7 +2,7 @@
 /generated
 utilities/target
 .DS_Store
-clients/solo/embedded/*.eldiron
+clients/solo/embedded/*.nexusstudio
 users
 Untitled*
-Xcode/Eldiron/librustapi.a
+Xcode/NexusStudio/librustapi.a

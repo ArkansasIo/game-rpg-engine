@@ -6,7 +6,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Rusterix is the game engine of Eldiron."
+description = "Rusterix is the game engine of NexusStudio."
 keywords = ["software", "rendering", "graphics", "game", "engine"]
 readme = "README.md"
 

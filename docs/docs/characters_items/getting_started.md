@@ -16,7 +16,7 @@ You define them by editing their behavior and attributes:
 
 ---
 
-[Eldrin Script](eldrin_scripting_language) drives the entire behavior system of **Eldiron**. Visual scripts are translated into *Eldrin Script*, and you can always view the current source code in the editor. Whether you use visual scripting or *Eldrin* scripting directly is up to you; just note that when you use visual scripting, any manual edits in the scripts will be overwritten.
+[Eldrin Script](eldrin_scripting_language) drives the entire behavior system of **NexusStudio**. Visual scripts are translated into *Eldrin Script*, and you can always view the current source code in the editor. Whether you use visual scripting or *Eldrin* scripting directly is up to you; just note that when you use visual scripting, any manual edits in the scripts will be overwritten.
 
 ## Difference between Characters and Items
 

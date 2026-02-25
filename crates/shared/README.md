@@ -1,6 +1,6 @@
-# Eldiron Shared
+# NexusStudio Shared
 
-Shared code and common types used across the [Eldiron](https://github.com/markusmoenig/Eldiron) applications, including the creator, client, and server.
+Shared code and common types used across the [NexusStudio](https://github.com/markusmoenig/NexusStudio) applications, including the creator, client, and server.
 
 ## License
 

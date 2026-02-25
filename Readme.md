@@ -1,6 +1,6 @@
 #NEW RP-GAME Engine Test RPG Editor
  
-Eldiron is an open-source RPG creator and runtime for building classic-style role-playing games.
+NexusStudio is an open-source RPG creator and runtime for building classic-style role-playing games.
 
 Supported game styles:
 
@@ -18,15 +18,15 @@ Prerequisites:
 Run creator in dev mode:
 
 ```bash
-git clone https://github.com/markusmoenig/Eldiron
-cd Eldiron
-cargo run -p eldiron-creator
+git clone https://github.com/markusmoenig/NexusStudio
+cd NexusStudio
+cargo run -p nexusstudio-creator
 ```
 
 Run release build:
 
 ```bash
-cargo run --release -p eldiron-creator
+cargo run --release -p nexusstudio-creator
 ```
 
 ## Workspace Overview

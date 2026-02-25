@@ -1,5 +1,5 @@
 
-This chapter serves as a reference for **scripting and data attributes** used in [Characters](/docs/creator/characters) and [Items](/docs/creator/items) in Eldiron.
+This chapter serves as a reference for **scripting and data attributes** used in [Characters](/docs/creator/characters) and [Items](/docs/creator/items) in NexusStudio.
 
 Since many **events, commands, and attributes** are shared between the two, they are **listed together**, with any **specific differences noted where applicable**.
 
@@ -79,7 +79,7 @@ color = "#ff0000"
 color_targets = ["left_leg", "right_leg"]
 
 # When the item is equipped, specifies the names of linedefs this item geometry should be attached to. If 'geo_targets' is not
-# present Eldiron checks if there is a linedef with a name equal to this item's slot name and uses that. So use 'geo_targets' only
+# present NexusStudio checks if there is a linedef with a name equal to this item's slot name and uses that. So use 'geo_targets' only
 # if you want to attach the item geometry to several linedefs.
 geo_targets = ["left_shoulder", "right_shoulder"]
 

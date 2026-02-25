@@ -1,4 +1,4 @@
-# Eldiron v0.8.100
+# NexusStudio v0.8.100
 
 ## New Features
 
@@ -42,15 +42,15 @@
 
 ---
 
-# Eldiron Creator v0.8.90
+# NexusStudio Creator v0.8.90
 
 ## New Features
 
 ### Creator
 
 - New UI concept: A project tree view now drives the content shown in the dock window (instead of Tools). This also drives a new Undo / Redo system, each dock window has its own undo / redo stack.
-- Maximizing the tile picker now reveals the new tile editor. Edit tiles directly in Eldiron and see them update the region in realtime.
-- The action list has been expanded and is now central to nearly all functionality inside Eldiron. A lot of new actions were added covering all aspects of Eldiron.
+- Maximizing the tile picker now reveals the new tile editor. Edit tiles directly in NexusStudio and see them update the region in realtime.
+- The action list has been expanded and is now central to nearly all functionality inside NexusStudio. A lot of new actions were added covering all aspects of NexusStudio.
 - The Rect tool now works in 3D, draw tiles directly on surfaces.
 - New 3D editing actions include creation of gates and doors within surface holes, material settings for tiles and more.
 - Now localization system and initial Chinese, Taiwanese, Spanish and German translations for the Creator.
@@ -69,7 +69,7 @@
 
 ---
 
-# Eldiron Creator v0.8.80
+# NexusStudio Creator v0.8.80
 
 ## New Features
 
@@ -91,7 +91,7 @@
 
 ---
 
-# Eldiron Creator v0.8.70
+# NexusStudio Creator v0.8.70
 
 ## New Features
 
@@ -110,7 +110,7 @@
 
 ---
 
-# Eldiron Creator v0.8.60
+# NexusStudio Creator v0.8.60
 
 ## New Features
 
@@ -147,7 +147,7 @@
 
 ---
 
-# Eldiron Creator v0.8.50
+# NexusStudio Creator v0.8.50
 
 ## New Features
 

@@ -3,7 +3,7 @@ title: "Character Rigging"
 sidebar_position: 4
 ---
 
-Rigging in Eldiron lets a character avatar adapt visually to equipped gear:
+Rigging in NexusStudio lets a character avatar adapt visually to equipped gear:
 
 - armor can recolor body parts
 - weapons can attach to hand anchors
@@ -110,7 +110,7 @@ Best practice:
 - keep anchor movement smooth between frames
 - verify all perspectives used by your game
 
-If a specific frame anchor is missing, Eldiron falls back to available perspective data.
+If a specific frame anchor is missing, NexusStudio falls back to available perspective data.
 
 ---
 
@@ -123,7 +123,7 @@ Default weapon slots are:
 - `main_hand`
 - `off_hand`
 
-For avatar hand lookup compatibility, Eldiron also recognizes common aliases.
+For avatar hand lookup compatibility, NexusStudio also recognizes common aliases.
 
 Main hand aliases:
 
