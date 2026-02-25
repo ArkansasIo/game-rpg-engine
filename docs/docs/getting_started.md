@@ -5,50 +5,48 @@ sidebar_position: 1
 
 ![Logo](/img/eldiron-banner.png)
 
-## Downloading Eldiron
+## Install Options
 
-The first step is to download your copy of **Eldiron** from the GitHub repository [here](https://github.com/markusmoenig/Eldiron/releases). Expand the **Assets** folder of the latest release and download the binary for your operating system.
+### Prebuilt Releases
 
-For **Windows** download
+Download binaries from GitHub Releases:
 
-- **eldiron-creator-x86_64-pc-windows-msvc.zip** which is the raw executable 
-- or **Eldiron-Creator.msi** which is installer based.
+- <https://github.com/markusmoenig/Eldiron/releases>
 
-For **Linux** download
-
-- **eldiron-client-x86_64-unknown-linux-gnu.tar.gz**
-- or **Eldiron-Creator.deb**
-- or for Arch Linux Users you can install the [AUR](https://aur.archlinux.org/packages/eldiron-bin)
-
-For **macOS** download
-
-- **eldiron_creator_macOS.zip**
-- A macOS AppStore version is planned after we reach v1
-
-### Install via Cargo
-
-If you have [Rust installed](https://www.rust-lang.org/tools/install), you can install Eldiron Creator directly from [crates.io](https://crates.io):
-
-```bash
-cargo install eldiron-creator
-```
-
-### Building from Source
-
-Clone the repository and build:
+### Build From Source
 
 ```bash
 git clone https://github.com/markusmoenig/Eldiron
 cd Eldiron
-cargo run --release --package creator
+cargo run -p eldiron-creator
+```
+
+Release mode:
+
+```bash
+cargo run --release -p eldiron-creator
 ```
 
 ### Linux Dependencies
 
-Make sure these dependencies are installed: `libasound2-dev` `libatk1.0-dev` `libgtk-3-dev`
+Install:
 
-## First Steps
+- `libasound2-dev`
+- `libatk1.0-dev`
+- `libgtk-3-dev`
 
-After installing **Eldiron Creator** read [Working with Geometry](/docs/working_with_geometry) and after that the *Building Maps* chapter, especially [Working with Tiles](/docs/building_maps/working_with_tiles) and  [2D or 3D Maps ?](/docs/building_maps/2d_or_3d).
+## First Project Flow
 
-Learning about **characters** and **clients** would be a good next step, start with [Getting Started](/docs/characters_items/getting_started).
+1. Create or open a project in Eldiron Creator.
+2. Build a map with the tile and geometry tools.
+3. Add characters, items, and events.
+4. Configure game behavior in project settings.
+5. Test in the client runtime.
+
+## Recommended Learning Order
+
+1. [Working with Geometry](/docs/working_with_geometry)
+2. [Building Maps](/docs/building_maps/working_with_tiles)
+3. [2D or 3D Maps?](/docs/building_maps/2d_or_3d)
+4. [Characters & Items](/docs/characters_items/getting_started)
+5. [Clients](/docs/clients)
