@@ -1,0 +1,11 @@
+[theme]
+name = "Forest Dream"
+background = "#263238"
+foreground = "#cfd8dc"
+accent = "#43a047"
+selection = "#37474f"
+comment = "#789262"
+keyword = "#8bc34a"
+string = "#ffd600"
+function = "#43a047"
+variable = "#cfd8dc"

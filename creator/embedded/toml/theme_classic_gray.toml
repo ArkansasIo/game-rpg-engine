@@ -1,0 +1,11 @@
+[theme]
+name = "Classic Gray"
+background = "#232323"
+foreground = "#e0e0e0"
+accent = "#bdbdbd"
+selection = "#393e46"
+comment = "#757575"
+keyword = "#bdbdbd"
+string = "#ffd600"
+function = "#bdbdbd"
+variable = "#e0e0e0"

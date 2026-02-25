@@ -1,0 +1,17 @@
+# Editor Themes for Eldiron
+# Each theme is a TOML file with color and style settings.
+# Place these files in the embedded/toml/ directory.
+
+# Example theme structure:
+# [theme]
+# name = "Theme Name"
+# background = "#000000"
+# foreground = "#FFFFFF"
+# accent = "#FF0000"
+# selection = "#3333FF"
+# comment = "#888888"
+# keyword = "#00FF00"
+# string = "#FFFF00"
+# function = "#00FFFF"
+# variable = "#FF00FF"
+

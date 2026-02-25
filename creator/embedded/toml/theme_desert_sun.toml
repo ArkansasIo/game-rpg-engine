@@ -1,0 +1,11 @@
+[theme]
+name = "Desert Sun"
+background = "#f4e2d8"
+foreground = "#2d2d2d"
+accent = "#ff9800"
+selection = "#ffe066"
+comment = "#bdb76b"
+keyword = "#ff9800"
+string = "#ffd600"
+function = "#ff5722"
+variable = "#8bc34a"

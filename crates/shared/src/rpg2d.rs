@@ -51,6 +51,174 @@ impl GameSettings {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DisplayResolution {
+    Hd720,
+    Hd900,
+    FullHd1080,
+    Qhd1440,
+    Uhd4k,
+}
+
+impl DisplayResolution {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Hd720 => "720p HD",
+            Self::Hd900 => "900p HD+",
+            Self::FullHd1080 => "1080p Full HD",
+            Self::Qhd1440 => "1440p QHD",
+            Self::Uhd4k => "2160p 4K UHD",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum WindowMode {
+    Windowed,
+    Borderless,
+    Fullscreen,
+}
+
+impl WindowMode {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Windowed => "Windowed",
+            Self::Borderless => "Borderless",
+            Self::Fullscreen => "Fullscreen",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GraphicsQuality {
+    Low,
+    Medium,
+    High,
+    Ultra,
+}
+
+impl GraphicsQuality {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Low => "Low",
+            Self::Medium => "Medium",
+            Self::High => "High",
+            Self::Ultra => "Ultra",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum HdrMode {
+    Off,
+    On,
+    Auto,
+}
+
+impl HdrMode {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Off => "Off",
+            Self::On => "On",
+            Self::Auto => "Auto",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct VideoSettings {
+    pub resolution: DisplayResolution,
+    pub window_mode: WindowMode,
+    pub hdr: HdrMode,
+    pub vsync: bool,
+    pub quality: GraphicsQuality,
+}
+
+impl Default for VideoSettings {
+    fn default() -> Self {
+        Self {
+            resolution: DisplayResolution::FullHd1080,
+            window_mode: WindowMode::Windowed,
+            hdr: HdrMode::Auto,
+            vsync: true,
+            quality: GraphicsQuality::High,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum KeyboardAction {
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+    Confirm,
+    Cancel,
+    OpenMenu,
+    OpenMap,
+    OpenInventory,
+}
+
+impl KeyboardAction {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::MoveUp => "Move Up",
+            Self::MoveDown => "Move Down",
+            Self::MoveLeft => "Move Left",
+            Self::MoveRight => "Move Right",
+            Self::Confirm => "Confirm",
+            Self::Cancel => "Cancel",
+            Self::OpenMenu => "Open Menu",
+            Self::OpenMap => "Open Map",
+            Self::OpenInventory => "Open Inventory",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct MicroButtonBinding {
+    pub slot: u8,
+    pub action: KeyboardAction,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InputSettings {
+    pub keyboard_enabled: bool,
+    pub keyboard_layout: String,
+    pub micro_buttons_enabled: bool,
+    pub micro_button_bindings: Vec<MicroButtonBinding>,
+}
+
+impl Default for InputSettings {
+    fn default() -> Self {
+        Self {
+            keyboard_enabled: true,
+            keyboard_layout: "QWERTY".to_string(),
+            micro_buttons_enabled: true,
+            micro_button_bindings: vec![
+                MicroButtonBinding {
+                    slot: 1,
+                    action: KeyboardAction::OpenMenu,
+                },
+                MicroButtonBinding {
+                    slot: 2,
+                    action: KeyboardAction::OpenMap,
+                },
+                MicroButtonBinding {
+                    slot: 3,
+                    action: KeyboardAction::OpenInventory,
+                },
+            ],
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+pub struct RuntimeOptions {
+    pub video: VideoSettings,
+    pub input: InputSettings,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Direction2D {
     Up,
     Down,
@@ -1228,7 +1396,10 @@ pub struct AudioBusState {
     pub music_percent: u8,
     pub sfx_percent: u8,
     pub ui_percent: u8,
+    pub ambience_percent: u8,
+    pub voice_percent: u8,
     pub muted: bool,
+    pub spatial_audio: bool,
 }
 
 impl Default for AudioBusState {
@@ -1238,7 +1409,10 @@ impl Default for AudioBusState {
             music_percent: 70,
             sfx_percent: 80,
             ui_percent: 85,
+            ambience_percent: 75,
+            voice_percent: 80,
             muted: false,
+            spatial_audio: true,
         }
     }
 }
@@ -1682,8 +1856,13 @@ pub fn build_audio_creator_menu(audio: &AudioSystem) -> MenuState {
         MenuItem::leaf(
             "audio_bus",
             &format!(
-                "Bus M:{} Music:{} SFX:{} UI:{}",
-                audio.bus.master_percent, audio.bus.music_percent, audio.bus.sfx_percent, audio.bus.ui_percent
+                "Bus M:{} Music:{} SFX:{} UI:{} Amb:{} Voice:{}",
+                audio.bus.master_percent,
+                audio.bus.music_percent,
+                audio.bus.sfx_percent,
+                audio.bus.ui_percent,
+                audio.bus.ambience_percent,
+                audio.bus.voice_percent
             ),
             false,
             MenuAction::Custom("audio_bus_info".to_string()),
@@ -1706,6 +1885,192 @@ pub fn build_audio_creator_menu(audio: &AudioSystem) -> MenuState {
     items.extend(sfx_items);
 
     MenuState::new(MenuItem::branch("audio_creator", "Audio Creator", true, items))
+}
+
+pub fn build_settings_menu(audio: &AudioSystem, options: &RuntimeOptions) -> MenuState {
+    let video = &options.video;
+    let input = &options.input;
+    MenuState::new(MenuItem::branch(
+        "settings_root",
+        "Settings",
+        true,
+        vec![
+            MenuItem::branch(
+                "video",
+                "Video",
+                true,
+                vec![
+                    MenuItem::leaf(
+                        "set_res_720p",
+                        "Resolution: 720p HD",
+                        video.resolution != DisplayResolution::Hd720,
+                        MenuAction::Custom("set_resolution_720p".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_res_900p",
+                        "Resolution: 900p HD+",
+                        video.resolution != DisplayResolution::Hd900,
+                        MenuAction::Custom("set_resolution_900p".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_res_1080p",
+                        "Resolution: 1080p Full HD",
+                        video.resolution != DisplayResolution::FullHd1080,
+                        MenuAction::Custom("set_resolution_1080p".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_res_1440p",
+                        "Resolution: 1440p QHD",
+                        video.resolution != DisplayResolution::Qhd1440,
+                        MenuAction::Custom("set_resolution_1440p".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_res_4k",
+                        "Resolution: 2160p 4K UHD",
+                        video.resolution != DisplayResolution::Uhd4k,
+                        MenuAction::Custom("set_resolution_4k".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_window_windowed",
+                        "Window Mode: Windowed",
+                        video.window_mode != WindowMode::Windowed,
+                        MenuAction::Custom("set_window_mode_windowed".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_window_fullscreen",
+                        "Window Mode: Fullscreen",
+                        video.window_mode != WindowMode::Fullscreen,
+                        MenuAction::Custom("set_window_mode_fullscreen".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_hdr_auto",
+                        "HDR: Auto",
+                        video.hdr != HdrMode::Auto,
+                        MenuAction::Custom("set_hdr_auto".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_hdr_on",
+                        "HDR: On",
+                        video.hdr != HdrMode::On,
+                        MenuAction::Custom("set_hdr_on".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "set_hdr_off",
+                        "HDR: Off",
+                        video.hdr != HdrMode::Off,
+                        MenuAction::Custom("set_hdr_off".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "toggle_vsync",
+                        &format!("VSync: {}", if video.vsync { "On" } else { "Off" }),
+                        true,
+                        MenuAction::Custom("toggle_vsync".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "cycle_quality",
+                        &format!("Quality: {}", video.quality.label()),
+                        true,
+                        MenuAction::Custom("cycle_quality".to_string()),
+                    ),
+                ],
+            ),
+            MenuItem::branch(
+                "audio",
+                "Audio",
+                true,
+                vec![
+                    MenuItem::leaf(
+                        "master_up",
+                        &format!("Master +5 ({})", audio.bus.master_percent),
+                        audio.bus.master_percent < 100,
+                        MenuAction::Custom("audio_master_up".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "master_down",
+                        &format!("Master -5 ({})", audio.bus.master_percent),
+                        audio.bus.master_percent > 0,
+                        MenuAction::Custom("audio_master_down".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "music_up",
+                        &format!("Music +5 ({})", audio.bus.music_percent),
+                        audio.bus.music_percent < 100,
+                        MenuAction::Custom("audio_music_up".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "music_down",
+                        &format!("Music -5 ({})", audio.bus.music_percent),
+                        audio.bus.music_percent > 0,
+                        MenuAction::Custom("audio_music_down".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "sfx_up",
+                        &format!("SFX +5 ({})", audio.bus.sfx_percent),
+                        audio.bus.sfx_percent < 100,
+                        MenuAction::Custom("audio_sfx_up".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "sfx_down",
+                        &format!("SFX -5 ({})", audio.bus.sfx_percent),
+                        audio.bus.sfx_percent > 0,
+                        MenuAction::Custom("audio_sfx_down".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "toggle_spatial",
+                        &format!(
+                            "Spatial Audio: {}",
+                            if audio.bus.spatial_audio { "On" } else { "Off" }
+                        ),
+                        true,
+                        MenuAction::Custom("audio_toggle_spatial".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "toggle_mute",
+                        &format!("Mute: {}", if audio.bus.muted { "On" } else { "Off" }),
+                        true,
+                        MenuAction::Custom("audio_toggle_mute".to_string()),
+                    ),
+                ],
+            ),
+            MenuItem::branch(
+                "input",
+                "Input",
+                true,
+                vec![
+                    MenuItem::leaf(
+                        "keyboard_toggle",
+                        &format!(
+                            "Keyboard Input: {}",
+                            if input.keyboard_enabled { "On" } else { "Off" }
+                        ),
+                        true,
+                        MenuAction::Custom("input_toggle_keyboard".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "layout_cycle",
+                        &format!("Keyboard Layout: {}", input.keyboard_layout),
+                        true,
+                        MenuAction::Custom("input_cycle_layout".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "micro_toggle",
+                        &format!(
+                            "Micro Buttons: {}",
+                            if input.micro_buttons_enabled { "On" } else { "Off" }
+                        ),
+                        true,
+                        MenuAction::Custom("input_toggle_micro_buttons".to_string()),
+                    ),
+                    MenuItem::leaf(
+                        "micro_rotate",
+                        "Rotate Micro Button Bindings",
+                        !input.micro_button_bindings.is_empty(),
+                        MenuAction::Custom("input_rotate_micro_bindings".to_string()),
+                    ),
+                ],
+            ),
+        ],
+    ))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1981,6 +2346,8 @@ pub enum PlayState {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RpgGameEngine {
     pub settings: GameSettings,
+    #[serde(default)]
+    pub runtime_options: RuntimeOptions,
     pub world: World2D,
     pub encounter_table: EncounterTable,
     pub party: Party,
@@ -2007,6 +2374,7 @@ impl RpgGameEngine {
     ) -> Self {
         Self {
             settings,
+            runtime_options: RuntimeOptions::default(),
             world,
             encounter_table,
             party,
@@ -2240,6 +2608,10 @@ impl RpgGameEngine {
         }
     }
 
+    pub fn open_settings_menu(&mut self) {
+        self.menu_state = Some(build_settings_menu(&self.audio, &self.runtime_options));
+    }
+
     pub fn close_menu(&mut self) {
         self.menu_state = None;
     }
@@ -2324,11 +2696,177 @@ impl RpgGameEngine {
         }
     }
 
+    fn cycle_quality(quality: GraphicsQuality) -> GraphicsQuality {
+        match quality {
+            GraphicsQuality::Low => GraphicsQuality::Medium,
+            GraphicsQuality::Medium => GraphicsQuality::High,
+            GraphicsQuality::High => GraphicsQuality::Ultra,
+            GraphicsQuality::Ultra => GraphicsQuality::Low,
+        }
+    }
+
+    fn cycle_keyboard_layout(layout: &str) -> &'static str {
+        match layout {
+            "QWERTY" => "AZERTY",
+            "AZERTY" => "DVORAK",
+            _ => "QWERTY",
+        }
+    }
+
+    fn adjust_volume(value: u8, delta: i8) -> u8 {
+        if delta >= 0 {
+            value.saturating_add(delta as u8).min(100)
+        } else {
+            value.saturating_sub((-delta) as u8)
+        }
+    }
+
+    fn apply_settings_custom_command(&mut self, cmd: &str) -> Vec<EngineEvent> {
+        let mut events = Vec::new();
+        let mut changed_video = false;
+        let mut changed_audio = false;
+        let mut changed_input = false;
+
+        match cmd {
+            "set_resolution_720p" => {
+                self.runtime_options.video.resolution = DisplayResolution::Hd720;
+                changed_video = true;
+            }
+            "set_resolution_900p" => {
+                self.runtime_options.video.resolution = DisplayResolution::Hd900;
+                changed_video = true;
+            }
+            "set_resolution_1080p" => {
+                self.runtime_options.video.resolution = DisplayResolution::FullHd1080;
+                changed_video = true;
+            }
+            "set_resolution_1440p" => {
+                self.runtime_options.video.resolution = DisplayResolution::Qhd1440;
+                changed_video = true;
+            }
+            "set_resolution_4k" => {
+                self.runtime_options.video.resolution = DisplayResolution::Uhd4k;
+                changed_video = true;
+            }
+            "set_window_mode_windowed" => {
+                self.runtime_options.video.window_mode = WindowMode::Windowed;
+                changed_video = true;
+            }
+            "set_window_mode_fullscreen" => {
+                self.runtime_options.video.window_mode = WindowMode::Fullscreen;
+                changed_video = true;
+            }
+            "set_hdr_auto" => {
+                self.runtime_options.video.hdr = HdrMode::Auto;
+                changed_video = true;
+            }
+            "set_hdr_on" => {
+                self.runtime_options.video.hdr = HdrMode::On;
+                changed_video = true;
+            }
+            "set_hdr_off" => {
+                self.runtime_options.video.hdr = HdrMode::Off;
+                changed_video = true;
+            }
+            "toggle_vsync" => {
+                self.runtime_options.video.vsync = !self.runtime_options.video.vsync;
+                changed_video = true;
+            }
+            "cycle_quality" => {
+                self.runtime_options.video.quality =
+                    Self::cycle_quality(self.runtime_options.video.quality);
+                changed_video = true;
+            }
+            "audio_master_up" => {
+                self.audio.bus.master_percent =
+                    Self::adjust_volume(self.audio.bus.master_percent, 5);
+                changed_audio = true;
+            }
+            "audio_master_down" => {
+                self.audio.bus.master_percent =
+                    Self::adjust_volume(self.audio.bus.master_percent, -5);
+                changed_audio = true;
+            }
+            "audio_music_up" => {
+                self.audio.bus.music_percent =
+                    Self::adjust_volume(self.audio.bus.music_percent, 5);
+                changed_audio = true;
+            }
+            "audio_music_down" => {
+                self.audio.bus.music_percent =
+                    Self::adjust_volume(self.audio.bus.music_percent, -5);
+                changed_audio = true;
+            }
+            "audio_sfx_up" => {
+                self.audio.bus.sfx_percent = Self::adjust_volume(self.audio.bus.sfx_percent, 5);
+                changed_audio = true;
+            }
+            "audio_sfx_down" => {
+                self.audio.bus.sfx_percent = Self::adjust_volume(self.audio.bus.sfx_percent, -5);
+                changed_audio = true;
+            }
+            "audio_toggle_spatial" => {
+                self.audio.bus.spatial_audio = !self.audio.bus.spatial_audio;
+                changed_audio = true;
+            }
+            "audio_toggle_mute" => {
+                self.audio.bus.muted = !self.audio.bus.muted;
+                changed_audio = true;
+            }
+            "input_toggle_keyboard" => {
+                self.runtime_options.input.keyboard_enabled =
+                    !self.runtime_options.input.keyboard_enabled;
+                changed_input = true;
+            }
+            "input_cycle_layout" => {
+                self.runtime_options.input.keyboard_layout =
+                    Self::cycle_keyboard_layout(&self.runtime_options.input.keyboard_layout)
+                        .to_string();
+                changed_input = true;
+            }
+            "input_toggle_micro_buttons" => {
+                self.runtime_options.input.micro_buttons_enabled =
+                    !self.runtime_options.input.micro_buttons_enabled;
+                changed_input = true;
+            }
+            "input_rotate_micro_bindings" => {
+                if self.runtime_options.input.micro_button_bindings.len() > 1 {
+                    self.runtime_options.input.micro_button_bindings.rotate_left(1);
+                    changed_input = true;
+                }
+            }
+            _ => {}
+        }
+
+        if changed_audio {
+            events.push(EngineEvent::Audio(AudioEvent::SetBus(self.audio.bus.clone())));
+        }
+
+        if changed_video {
+            events.push(EngineEvent::MenuAction(MenuAction::Custom(
+                "settings_video_updated".to_string(),
+            )));
+        }
+        if changed_input {
+            events.push(EngineEvent::MenuAction(MenuAction::Custom(
+                "settings_input_updated".to_string(),
+            )));
+        }
+
+        if changed_video || changed_audio || changed_input {
+            self.open_settings_menu();
+        }
+        events
+    }
+
     fn execute_menu_action(&mut self, action: MenuAction) -> Vec<EngineEvent> {
         let mut events = vec![EngineEvent::MenuAction(action.clone())];
         match action {
             MenuAction::ResumeGame => {
                 self.menu_state = None;
+            }
+            MenuAction::OpenSettings => {
+                self.open_settings_menu();
             }
             MenuAction::OpenTools => {
                 self.open_tool_menu();
@@ -2408,6 +2946,9 @@ impl RpgGameEngine {
             MenuAction::QuitGame => {
                 self.state = PlayState::GameOver;
                 events.push(EngineEvent::GameOver);
+            }
+            MenuAction::Custom(cmd) => {
+                events.extend(self.apply_settings_custom_command(&cmd));
             }
             _ => {}
         }
@@ -3745,6 +4286,84 @@ mod tests {
         let menu = build_creator_top_menu();
         let labels: Vec<_> = menu.current_items().iter().map(|i| i.label.clone()).collect();
         assert!(labels.contains(&"Audio Creator".to_string()));
+    }
+
+    #[test]
+    fn settings_menu_updates_video_resolution() {
+        let mut engine = RpgGameEngine::new(
+            GameSettings::default(),
+            sample_world_20x15(),
+            EncounterTable { packs: vec![] },
+            Party {
+                members: vec![hero()],
+                inventory: HashMap::new(),
+                gold: 0,
+            },
+            Coord2 { x: 2, y: 2 },
+        );
+        engine.open_settings_menu();
+        let _ = engine.handle_menu_input(MenuInput::Confirm);
+        let resp = engine.handle_menu_input(MenuInput::Confirm);
+        assert_eq!(engine.runtime_options.video.resolution, DisplayResolution::Hd720);
+        assert!(resp.events.iter().any(|e| matches!(
+            e,
+            EngineEvent::MenuAction(MenuAction::Custom(cmd)) if cmd == "settings_video_updated"
+        )));
+    }
+
+    #[test]
+    fn settings_menu_updates_audio_and_input_options() {
+        let mut engine = RpgGameEngine::new(
+            GameSettings::default(),
+            sample_world_20x15(),
+            EncounterTable { packs: vec![] },
+            Party {
+                members: vec![hero()],
+                inventory: HashMap::new(),
+                gold: 0,
+            },
+            Coord2 { x: 2, y: 2 },
+        );
+
+        engine.open_settings_menu();
+        let _ = engine.handle_menu_input(MenuInput::Down); // Audio
+        let _ = engine.handle_menu_input(MenuInput::Confirm);
+        for _ in 0..8 {
+            if engine
+                .menu_state
+                .as_ref()
+                .and_then(|m| m.current_item())
+                .map(|i| i.id.as_str())
+                == Some("toggle_mute")
+            {
+                break;
+            }
+            let _ = engine.handle_menu_input(MenuInput::Down);
+        }
+        let resp_audio = engine.handle_menu_input(MenuInput::Confirm);
+        assert!(engine.audio.bus.muted);
+        assert!(resp_audio.events.iter().any(
+            |e| matches!(e, EngineEvent::Audio(AudioEvent::SetBus(bus)) if bus.muted)
+        ));
+
+        engine.open_settings_menu();
+        let _ = engine.handle_menu_input(MenuInput::Down); // Audio
+        let _ = engine.handle_menu_input(MenuInput::Down); // Input
+        let _ = engine.handle_menu_input(MenuInput::Confirm);
+        for _ in 0..6 {
+            if engine
+                .menu_state
+                .as_ref()
+                .and_then(|m| m.current_item())
+                .map(|i| i.id.as_str())
+                == Some("micro_toggle")
+            {
+                break;
+            }
+            let _ = engine.handle_menu_input(MenuInput::Down);
+        }
+        let _ = engine.handle_menu_input(MenuInput::Confirm);
+        assert!(!engine.runtime_options.input.micro_buttons_enabled);
     }
 
     #[test]

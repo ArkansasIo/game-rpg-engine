@@ -1,0 +1,11 @@
+[theme]
+name = "Midnight Blue"
+background = "#232946"
+foreground = "#eebbc3"
+accent = "#b8c1ec"
+selection = "#393e46"
+comment = "#a0a0a0"
+keyword = "#eebbc3"
+string = "#fde24f"
+function = "#b8c1ec"
+variable = "#eebbc3"

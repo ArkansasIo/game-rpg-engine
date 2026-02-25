@@ -1,0 +1,11 @@
+[theme]
+name = "Oceanic"
+background = "#011627"
+foreground = "#d6deeb"
+accent = "#2ec4b6"
+selection = "#003554"
+comment = "#637777"
+keyword = "#22d3ee"
+string = "#ffd600"
+function = "#2ec4b6"
+variable = "#d6deeb"

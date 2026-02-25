@@ -2,6 +2,7 @@ pub mod asset;
 pub mod character;
 pub mod context;
 pub mod effectwrapper;
+pub mod engine_editor;
 pub mod fx;
 pub mod grid2d;
 pub mod grid2d_history;
@@ -18,6 +19,7 @@ pub mod screen;
 pub mod settingscontainer;
 pub mod tilemap;
 pub mod tileselection;
+pub mod unreal_editor;
 
 pub mod prelude {
     pub use ::serde::{Deserialize, Serialize};
@@ -26,6 +28,7 @@ pub mod prelude {
     pub use crate::character::Character;
     pub use crate::context::*;
     pub use crate::effectwrapper::*;
+    pub use crate::engine_editor::*;
     pub use crate::fx::*;
     pub use crate::grid2d::*;
     pub use crate::grid2d_history::*;
@@ -40,6 +43,7 @@ pub mod prelude {
     pub use crate::screen::*;
     pub use crate::tilemap::{Tile, Tilemap};
     pub use indexmap::IndexMap;
+    pub use crate::unreal_editor::*;
     pub use rusterix::{
         Avatar, AvatarAnimation, AvatarAnimationFrame, AvatarDirection, AvatarPerspective,
         AvatarPerspectiveCount,

@@ -1,0 +1,11 @@
+[theme]
+name = "Autumn Leaves"
+background = "#3e2723"
+foreground = "#ffe0b2"
+accent = "#ff7043"
+selection = "#5d4037"
+comment = "#bcaaa4"
+keyword = "#ff7043"
+string = "#ffd600"
+function = "#ff9800"
+variable = "#ffe0b2"

@@ -1,5 +1,9 @@
 use crate::Embedded;
+use crate::menus::rpg_maker_menu::RPGMakerMenu;
+use crate::menus::rpg_maker_tools_menu::RPGMakerToolsMenu;
 use crate::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::menu_sfx::{MenuSfxEngine, MenuSfxKind};
 #[cfg(all(not(target_arch = "wasm32"), feature = "self-update"))]
 use crate::self_update::{SelfUpdateEvent, SelfUpdater};
 use crate::undo::character_undo::CharacterUndoAtom;
@@ -71,6 +75,14 @@ pub static SHADEGRIDFX: LazyLock<RwLock<Module>> =
 pub static SHADERBUFFER: LazyLock<RwLock<TheRGBABuffer>> =
     LazyLock::new(|| RwLock::new(TheRGBABuffer::new(TheDim::sized(200, 200))));
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum StartupScreenStage {
+    Boot,
+    Loading,
+    TitleMain,
+    Ready,
+}
+
 pub struct Editor {
     project: Project,
     project_path: Option<PathBuf>,
@@ -91,8 +103,13 @@ pub struct Editor {
     self_updater: Arc<Mutex<SelfUpdater>>,
 
     update_counter: usize,
+    startup_stage: StartupScreenStage,
 
     build_values: ValueContainer,
+    ue_runtime: UeEditorRuntime,
+    ue_selected_actor: Option<UeActorId>,
+    #[cfg(not(target_arch = "wasm32"))]
+    menu_sfx: MenuSfxEngine,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -134,6 +151,96 @@ fn default_true() -> bool {
 }
 
 impl Editor {
+    fn set_startup_stage(
+        &mut self,
+        stage: StartupScreenStage,
+        ui: &mut TheUI,
+        ctx: &mut TheContext,
+    ) {
+        self.startup_stage = stage;
+        if self.startup_stage == StartupScreenStage::Ready {
+            ui.clear_dialog();
+            return;
+        }
+        self.show_startup_dialog(ui, ctx);
+    }
+
+    fn show_startup_dialog(&self, ui: &mut TheUI, ctx: &mut TheContext) {
+        let width = (ctx.width as i32 - 80).clamp(560, 1100);
+        let height = (ctx.height as i32 - 120).clamp(320, 760);
+
+        let (dialog_title, subtitle, detail, progress) = match self.startup_stage {
+            StartupScreenStage::Boot => (
+                "Vertex Engine Editor Boot",
+                "Boot Screen",
+                "Initializing core editor runtime and API bindings.",
+                0.25_f32,
+            ),
+            StartupScreenStage::Loading => (
+                "NexusStudio Loading",
+                "Loading Screen",
+                "Compiling tool context, world systems, and content registries.",
+                0.70_f32,
+            ),
+            StartupScreenStage::TitleMain => (
+                "NexusStudio Main Title",
+                "Main Title Screen",
+                "Vertex Engine Editor is ready. Press Start Editor to enter the workspace.",
+                1.0_f32,
+            ),
+            StartupScreenStage::Ready => return,
+        };
+
+        let mut canvas = TheCanvas::new();
+        canvas.limiter_mut().set_max_size(Vec2::new(width, height));
+
+        let mut layout = TheVLayout::new(TheId::empty());
+        layout.limiter_mut().set_max_size(Vec2::new(width, height));
+        layout.set_margin(Vec4::new(20, 20, 20, 20));
+
+        let mut title = TheText::new(TheId::named("Startup Screen Title"));
+        title.set_text("Vertex Engine Editor".to_string());
+        layout.add_widget(Box::new(title));
+
+        let mut sub = TheText::new(TheId::named("Startup Screen Subtitle"));
+        sub.set_text(subtitle.to_string());
+        layout.add_widget(Box::new(sub));
+
+        let mut detail_text = TheText::new(TheId::named("Startup Screen Detail"));
+        detail_text.set_text(detail.to_string());
+        layout.add_widget(Box::new(detail_text));
+
+        let mut progress_text = TheText::new(TheId::named("Startup Screen Progress"));
+        progress_text.set_text(format!("Loading Progress: {}%", (progress * 100.0) as i32));
+        layout.add_widget(Box::new(progress_text));
+
+        canvas.set_layout(layout);
+
+        let buttons = if self.startup_stage == StartupScreenStage::TitleMain {
+            vec![TheDialogButtonRole::Accept]
+        } else {
+            vec![]
+        };
+        ui.show_dialog(dialog_title, canvas, buttons, ctx);
+    }
+
+    fn advance_startup_flow(&mut self, ui: &mut TheUI, ctx: &mut TheContext) {
+        if self.startup_stage == StartupScreenStage::Ready {
+            return;
+        }
+        if self.update_counter <= 1 && self.startup_stage == StartupScreenStage::Boot {
+            self.show_startup_dialog(ui, ctx);
+            return;
+        }
+        if self.update_counter > 1 && self.startup_stage == StartupScreenStage::Boot {
+            self.set_startup_stage(StartupScreenStage::Loading, ui, ctx);
+            return;
+        }
+        if self.update_counter > 10 && self.startup_stage == StartupScreenStage::Loading {
+            self.set_startup_stage(StartupScreenStage::TitleMain, ui, ctx);
+        }
+    }
+
     fn is_realtime_mode(&self) -> bool {
         self.server_ctx.game_mode
             || RUSTERIX.read().unwrap().server.state == rusterix::ServerState::Running
@@ -403,6 +510,82 @@ impl Editor {
 
         Ok((output_path, response))
     }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn play_top_menu_sfx(&self, id_name: &str) {
+        let kind = match id_name {
+            "Cancel" | "Stop" => MenuSfxKind::TopMenuCancel,
+            "Save" | "Save As" | "Open" | "Play" | "Pause" => MenuSfxKind::TopMenuConfirm,
+            _ => MenuSfxKind::TopMenuMove,
+        };
+        self.menu_sfx.play(kind);
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn play_tool_menu_sfx(&self) {
+        self.menu_sfx.play(MenuSfxKind::ToolMenuClick);
+    }
+
+    fn ue_apply(&mut self, cmd: UeEditorCommand) -> UeEditorCommandResult {
+        let result = self.ue_runtime.apply(cmd);
+        for event in &result.events {
+            match event {
+                UeEditorEvent::ActorSpawned(actor_id) => {
+                    self.ue_selected_actor = Some(*actor_id);
+                }
+                UeEditorEvent::ActorDuplicated { duplicated, .. } => {
+                    self.ue_selected_actor = Some(*duplicated);
+                }
+                UeEditorEvent::ActorRemoved(actor_id) => {
+                    if self.ue_selected_actor == Some(*actor_id) {
+                        self.ue_selected_actor = None;
+                    }
+                }
+                _ => {}
+            }
+        }
+        result
+    }
+
+    fn ue_result_status(&self, result: &UeEditorCommandResult) -> String {
+        if result.ok {
+            if let Some(event) = result.events.first() {
+                match event {
+                    UeEditorEvent::LevelCreated(id) => format!("UE level created: {id}"),
+                    UeEditorEvent::ActiveLevelChanged(id) => format!("UE active level: {id}"),
+                    UeEditorEvent::ActorSpawned(id) => format!("UE actor spawned: {id}"),
+                    UeEditorEvent::ActorRemoved(id) => format!("UE actor removed: {id}"),
+                    UeEditorEvent::ActorDuplicated { source, duplicated } => {
+                        format!("UE actor duplicated: {source} -> {duplicated}")
+                    }
+                    UeEditorEvent::ActorTransformed(id) => format!("UE actor transformed: {id}"),
+                    UeEditorEvent::ActorAttached {
+                        child_id,
+                        parent_id,
+                    } => format!("UE actor attached: {child_id} -> {parent_id}"),
+                    UeEditorEvent::ActorDetached(id) => format!("UE actor detached: {id}"),
+                    UeEditorEvent::ComponentAdded(id) => format!("UE component added to actor: {id}"),
+                    UeEditorEvent::PlayModeChanged(play) => {
+                        if *play {
+                            "UE play mode enabled.".to_string()
+                        } else {
+                            "UE play mode disabled.".to_string()
+                        }
+                    }
+                    UeEditorEvent::Warning(msg) => format!("UE warning: {msg}"),
+                }
+            } else {
+                "UE command applied.".to_string()
+            }
+        } else {
+            for event in &result.events {
+                if let UeEditorEvent::Warning(msg) = event {
+                    return format!("UE command failed: {msg}");
+                }
+            }
+            "UE command failed.".to_string()
+        }
+    }
 }
 
 impl TheTrait for Editor {
@@ -453,8 +636,13 @@ impl TheTrait for Editor {
             self_updater: Arc::new(Mutex::new(self_updater)),
 
             update_counter: 0,
+            startup_stage: StartupScreenStage::Boot,
 
             build_values: ValueContainer::default(),
+            ue_runtime: UeEditorRuntime::default(),
+            ue_selected_actor: None,
+            #[cfg(not(target_arch = "wasm32"))]
+            menu_sfx: MenuSfxEngine::default(),
         }
     }
 
@@ -739,6 +927,66 @@ impl TheTrait for Editor {
                 content_widgets_submenu,
             ));
 
+            let mut audio_fx_menu = TheContextMenu::named("Audio FX".to_string());
+            audio_fx_menu.add(TheContextMenuItem::new(
+                "Preview Menu Move (8-bit)".to_string(),
+                TheId::named("Audio FX Preview Move"),
+            ));
+            audio_fx_menu.add(TheContextMenuItem::new(
+                "Preview Menu Confirm (8-bit)".to_string(),
+                TheId::named("Audio FX Preview Confirm"),
+            ));
+            audio_fx_menu.add(TheContextMenuItem::new(
+                "Preview Tool Click (8-bit)".to_string(),
+                TheId::named("Audio FX Preview Tool"),
+            ));
+            audio_fx_menu.add(TheContextMenuItem::new(
+                "Export 8-bit SFX Bank".to_string(),
+                TheId::named("Audio FX Export Bank"),
+            ));
+
+            let mut ue_editor_menu = TheContextMenu::named("UE Editor".to_string());
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Create Level (2D)".to_string(),
+                TheId::named("UE Create Level 2D"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Create Level (3D)".to_string(),
+                TheId::named("UE Create Level 3D"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Spawn Actor".to_string(),
+                TheId::named("UE Spawn Actor"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Duplicate Actor".to_string(),
+                TheId::named("UE Duplicate Actor"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Snap Actor To Grid".to_string(),
+                TheId::named("UE Snap Actor"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Move Actor (+1,+1)".to_string(),
+                TheId::named("UE Move Actor"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Add Sprite Component".to_string(),
+                TheId::named("UE Add Sprite Component"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Add Mesh Component".to_string(),
+                TheId::named("UE Add Mesh Component"),
+            ));
+            ue_editor_menu.add(TheContextMenuItem::new(
+                "Toggle Play".to_string(),
+                TheId::named("UE Toggle Play"),
+            ));
+            let rpg_maker_menu =
+                RPGMakerMenu::new(TheId::named("RPG Maker")).context_menu();
+            let rpg_maker_tools_menu =
+                RPGMakerToolsMenu::new(TheId::named("RPG Tools")).context_menu();
+
             file_menu.register_accel(ctx);
             edit_menu.register_accel(ctx);
             game_menu.register_accel(ctx);
@@ -746,6 +994,10 @@ impl TheTrait for Editor {
             build_menu.register_accel(ctx);
             world_menu.register_accel(ctx);
             content_menu.register_accel(ctx);
+            audio_fx_menu.register_accel(ctx);
+            ue_editor_menu.register_accel(ctx);
+            rpg_maker_menu.register_accel(ctx);
+            rpg_maker_tools_menu.register_accel(ctx);
 
             menu.add_context_menu(file_menu);
             menu.add_context_menu(edit_menu);
@@ -754,6 +1006,10 @@ impl TheTrait for Editor {
             menu.add_context_menu(build_menu);
             menu.add_context_menu(world_menu);
             menu.add_context_menu(content_menu);
+            menu.add_context_menu(audio_fx_menu);
+            menu.add_context_menu(ue_editor_menu);
+            menu.add_context_menu(rpg_maker_menu);
+            menu.add_context_menu(rpg_maker_tools_menu);
             menu_canvas.set_widget(menu);
             top_canvas.set_top(menu_canvas);
         }
@@ -1052,6 +1308,8 @@ impl TheTrait for Editor {
     fn update_ui(&mut self, ui: &mut TheUI, ctx: &mut TheContext) -> bool {
         let mut redraw = false;
         let mut update_server_icons = false;
+
+        self.advance_startup_flow(ui, ctx);
 
         // Make sure on first startup the active tool is properly selected
         if self.update_counter == 0 {
@@ -1565,6 +1823,8 @@ impl TheTrait for Editor {
                 &mut self.server_ctx,
             ) {
                 redraw = true;
+                #[cfg(not(target_arch = "wasm32"))]
+                self.play_tool_menu_sfx();
             }
             if DOCKMANAGER.write().unwrap().handle_event(
                 &event,
@@ -1692,7 +1952,17 @@ impl TheTrait for Editor {
                 }
 
                 TheEvent::DialogValueOnClose(role, name, uuid, _value) => {
-                    if name == "Delete Character Instance ?" {
+                    if name == "NexusStudio Main Title"
+                        && (role == TheDialogButtonRole::Accept
+                            || role == TheDialogButtonRole::Reject)
+                    {
+                        self.set_startup_stage(StartupScreenStage::Ready, ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Entered NexusStudio workspace.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if name == "Delete Character Instance ?" {
                         if role == TheDialogButtonRole::Delete {
                             if let Some(region) =
                                 self.project.get_region_mut(&self.server_ctx.curr_region)
@@ -2315,6 +2585,31 @@ impl TheTrait for Editor {
                     }
                     if id.name == "GameInput" {
                         self.server_ctx.game_input_mode = state == TheWidgetState::Clicked;
+                    } else if id.name == "RPG New Project" {
+                        ctx.ui.send(TheEvent::StateChanged(TheId::named("New"), state));
+                    } else if id.name == "RPG Open Project" {
+                        ctx.ui.send(TheEvent::StateChanged(TheId::named("Open"), state));
+                    } else if id.name == "RPG Save Project" {
+                        ctx.ui.send(TheEvent::StateChanged(TheId::named("Save"), state));
+                    } else if id.name == "RPG Test Play" || id.name == "RPG Tool Test Play" {
+                        ctx.ui.send(TheEvent::StateChanged(TheId::named("Play"), state));
+                    } else if id.name == "RPG Import Assets"
+                        || id.name == "RPG Export Game"
+                        || id.name == "RPG Game Settings"
+                        || id.name == "RPG Exit"
+                        || id.name == "RPG Tool Map Editor"
+                        || id.name == "RPG Tool Character Editor"
+                        || id.name == "RPG Tool Item Editor"
+                        || id.name == "RPG Tool Event Editor"
+                        || id.name == "RPG Tool Database"
+                        || id.name == "RPG Tool Tileset Editor"
+                        || id.name == "RPG Tool Script Editor"
+                        || id.name == "RPG Tool Sound Manager"
+                    {
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            format!("{} selected.", id.name),
+                        ));
                     } else if id.name == "New" {
                         self.project_path = None;
                         self.update_counter = 0;
@@ -2482,6 +2777,43 @@ impl TheTrait for Editor {
                             .set_widget_state("Save As".to_string(), TheWidgetState::None);
                         ctx.ui.clear_hover();
                         redraw = true;
+                    } else if id.name == "Audio FX Preview Move" {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        self.menu_sfx.play(MenuSfxKind::TopMenuMove);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Previewed 8-bit menu move sound.".to_string(),
+                        ));
+                    } else if id.name == "Audio FX Preview Confirm" {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        self.menu_sfx.play(MenuSfxKind::TopMenuConfirm);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Previewed 8-bit menu confirm sound.".to_string(),
+                        ));
+                    } else if id.name == "Audio FX Preview Tool" {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        self.menu_sfx.play(MenuSfxKind::ToolMenuClick);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Previewed 8-bit tool click sound.".to_string(),
+                        ));
+                    } else if id.name == "Audio FX Export Bank" {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        match self.menu_sfx.export_default_bank("creator/audio8bit") {
+                            Ok(files) => {
+                                ctx.ui.send(TheEvent::SetStatusText(
+                                    TheId::empty(),
+                                    format!("Exported {} 8-bit SFX files to creator/audio8bit.", files.len()),
+                                ));
+                            }
+                            Err(error) => {
+                                ctx.ui.send(TheEvent::SetStatusText(
+                                    TheId::empty(),
+                                    format!("Failed to export 8-bit SFX bank: {error}"),
+                                ));
+                            }
+                        }
                     } else if id.name == "Project Validate" {
                         let (warnings, errors) = self.validate_project_for_design();
                         if errors.is_empty() {
@@ -2740,6 +3072,143 @@ impl TheTrait for Editor {
                             "Widget window starter pack created.".to_string(),
                         ));
                         redraw = true;
+                    } else if id.name == "UE Create Level 2D" {
+                        let id = self.unique_name(
+                            self.ue_runtime.levels.keys().cloned(),
+                            "ue_level_2d",
+                        );
+                        let result = self.ue_apply(UeEditorCommand::CreateLevel {
+                            id: id.clone(),
+                            name: format!("UE Level {}", self.ue_runtime.levels.len() + 1),
+                            mode: UeDimensionMode::TwoD,
+                        });
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Create Level 3D" {
+                        let id = self.unique_name(
+                            self.ue_runtime.levels.keys().cloned(),
+                            "ue_level_3d",
+                        );
+                        let result = self.ue_apply(UeEditorCommand::CreateLevel {
+                            id: id.clone(),
+                            name: format!("UE Level {}", self.ue_runtime.levels.len() + 1),
+                            mode: UeDimensionMode::ThreeD,
+                        });
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Spawn Actor" {
+                        let result = self.ue_apply(UeEditorCommand::SpawnActor {
+                            name: "Actor".to_string(),
+                        });
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Duplicate Actor" {
+                        let result = if let Some(actor_id) = self.ue_selected_actor {
+                            self.ue_apply(UeEditorCommand::DuplicateActor { actor_id })
+                        } else {
+                            UeEditorCommandResult {
+                                ok: false,
+                                events: vec![UeEditorEvent::Warning(
+                                    "No selected UE actor. Spawn one first.".to_string(),
+                                )],
+                            }
+                        };
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Snap Actor" {
+                        let result = if let Some(actor_id) = self.ue_selected_actor {
+                            self.ue_apply(UeEditorCommand::SnapActorToGrid { actor_id, grid: 1.0 })
+                        } else {
+                            UeEditorCommandResult {
+                                ok: false,
+                                events: vec![UeEditorEvent::Warning(
+                                    "No selected UE actor. Spawn one first.".to_string(),
+                                )],
+                            }
+                        };
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Move Actor" {
+                        let result = if let Some(actor_id) = self.ue_selected_actor {
+                            self.ue_apply(UeEditorCommand::MoveActor {
+                                actor_id,
+                                delta: UeVec3 {
+                                    x: 1.0,
+                                    y: 1.0,
+                                    z: 0.0,
+                                },
+                            })
+                        } else {
+                            UeEditorCommandResult {
+                                ok: false,
+                                events: vec![UeEditorEvent::Warning(
+                                    "No selected UE actor. Spawn one first.".to_string(),
+                                )],
+                            }
+                        };
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Add Sprite Component" {
+                        let result = if let Some(actor_id) = self.ue_selected_actor {
+                            self.ue_apply(UeEditorCommand::AddComponent {
+                                actor_id,
+                                component: UeComponent::Sprite2D {
+                                    sprite_id: "default_sprite".to_string(),
+                                    layer: 0,
+                                },
+                            })
+                        } else {
+                            UeEditorCommandResult {
+                                ok: false,
+                                events: vec![UeEditorEvent::Warning(
+                                    "No selected UE actor. Spawn one first.".to_string(),
+                                )],
+                            }
+                        };
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Add Mesh Component" {
+                        let result = if let Some(actor_id) = self.ue_selected_actor {
+                            self.ue_apply(UeEditorCommand::AddComponent {
+                                actor_id,
+                                component: UeComponent::StaticMesh3D {
+                                    mesh_id: "default_mesh".to_string(),
+                                    material_id: "default_material".to_string(),
+                                },
+                            })
+                        } else {
+                            UeEditorCommandResult {
+                                ok: false,
+                                events: vec![UeEditorEvent::Warning(
+                                    "No selected UE actor. Spawn one first.".to_string(),
+                                )],
+                            }
+                        };
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
+                    } else if id.name == "UE Toggle Play" {
+                        let result =
+                            self.ue_apply(UeEditorCommand::SetPlayMode(!self.ue_runtime.play_mode));
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            self.ue_result_status(&result),
+                        ));
                     }
                     // Server
                     else if id.name == "Play" {
@@ -2907,6 +3376,66 @@ impl TheTrait for Editor {
                             }
                         }
                     }
+
+                    #[cfg(not(target_arch = "wasm32"))]
+                    if matches!(
+                        id.name.as_str(),
+                        "Logo"
+                            | "Open"
+                            | "Save"
+                            | "Save As"
+                            | "Undo"
+                            | "Redo"
+                            | "Play"
+                            | "Pause"
+                            | "Stop"
+                            | "Project Validate"
+                            | "Project Refresh View"
+                            | "Build Compile Runtime Compact"
+                            | "Build Compile Runtime Pretty"
+                            | "Build Compile Runtime To File"
+                            | "Build Validate And Compile"
+                            | "World Add Region"
+                            | "World Add Dungeon"
+                            | "World Add Screen"
+                            | "World Seed Biomes"
+                            | "Content Add Character"
+                            | "Content Add Item"
+                            | "Content Add Starter Pack"
+                            | "Content Add Widget HUD"
+                            | "Content Add Widget Inventory"
+                            | "Content Add Widget Dialogue"
+                            | "Content Add Widget Settings"
+                            | "Content Add Widget Starter Pack"
+                            | "UE Create Level 2D"
+                            | "UE Create Level 3D"
+                            | "UE Spawn Actor"
+                            | "UE Duplicate Actor"
+                            | "UE Snap Actor"
+                            | "UE Move Actor"
+                            | "UE Add Sprite Component"
+                            | "UE Add Mesh Component"
+                            | "UE Toggle Play"
+                            | "RPG New Project"
+                            | "RPG Open Project"
+                            | "RPG Save Project"
+                            | "RPG Test Play"
+                            | "RPG Tool Test Play"
+                            | "RPG Import Assets"
+                            | "RPG Export Game"
+                            | "RPG Game Settings"
+                            | "RPG Exit"
+                            | "RPG Tool Map Editor"
+                            | "RPG Tool Character Editor"
+                            | "RPG Tool Item Editor"
+                            | "RPG Tool Event Editor"
+                            | "RPG Tool Database"
+                            | "RPG Tool Tileset Editor"
+                            | "RPG Tool Script Editor"
+                            | "RPG Tool Sound Manager"
+                    ) {
+                        self.play_top_menu_sfx(id.name.as_str());
+                    }
                 }
                 TheEvent::ValueChanged(id, value) => {
                     if id.name == "Server Time Slider" {
@@ -2959,10 +3488,13 @@ impl TheTrait for Editor {
                 }
                 SelfUpdateEvent::UpdateCompleted(release) => {
                     if let Some(statusbar) = ui.get_widget("Statusbar") {
-                        statusbar.as_statusbar().unwrap().set_text(format!(
-                            "Updated to version {}. Please restart the application to enjoy the new features.",
-                            release.version
-                        ));
+                        statusbar
+                            .as_statusbar()
+                            .unwrap()
+                            .set_text(format!(
+                                "Updated to version {}. Please restart the application to enjoy the new features.",
+                                release.version
+                            ));
                     }
                 }
                 SelfUpdateEvent::UpdateConfirm(release) => {
@@ -3086,3 +3618,6 @@ impl EldironEditor for Editor {
         }
     }
 }
+
+
+

@@ -1,0 +1,11 @@
+[theme]
+name = "Retro Wave"
+background = "#2d0036"
+foreground = "#f7f7f7"
+accent = "#ff00c8"
+selection = "#3a0ca3"
+comment = "#a0a0a0"
+keyword = "#ff00c8"
+string = "#ffe066"
+function = "#3a86ff"
+variable = "#ffbe0b"

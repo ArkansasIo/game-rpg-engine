@@ -1,0 +1,11 @@
+[theme]
+name = "Solar Flare"
+background = "#1a1a2e"
+foreground = "#eaeaea"
+accent = "#ff9800"
+selection = "#393e46"
+comment = "#6c757d"
+keyword = "#ff5722"
+string = "#ffd600"
+function = "#00bcd4"
+variable = "#8bc34a"

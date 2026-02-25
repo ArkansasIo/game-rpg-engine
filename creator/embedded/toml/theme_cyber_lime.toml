@@ -1,0 +1,11 @@
+[theme]
+name = "Cyber Lime"
+background = "#101820"
+foreground = "#f2ff49"
+accent = "#39ff14"
+selection = "#393e46"
+comment = "#a0a0a0"
+keyword = "#39ff14"
+string = "#f2ff49"
+function = "#00bcd4"
+variable = "#f2ff49"
