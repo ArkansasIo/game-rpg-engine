@@ -290,28 +290,56 @@ impl TheWidget for TheTraybarButton {
 
         if let Some(icon) = &self.icon {
             let utuple = self.dim.to_buffer_shrunk_utuple(&shrinker);
+            let safe_utuple = self.dim.to_buffer_utuple();
+            let icon_x = utuple.0
+                + utuple
+                    .2
+                    .saturating_sub(icon.dim().width as usize)
+                    .saturating_div(2);
+            let icon_y = utuple.1
+                + utuple
+                    .3
+                    .saturating_sub(icon.dim().height as usize)
+                    .saturating_div(2);
             let r = (
-                ((utuple.0 + (utuple.2 - icon.dim().width as usize) / 2) as i32
-                    + self.icon_offset.x) as usize,
-                ((utuple.1 + (utuple.3 - icon.dim().height as usize) / 2) as i32
-                    + self.icon_offset.y) as usize,
+                icon_x as isize + self.icon_offset.x as isize,
+                icon_y as isize + self.icon_offset.y as isize,
                 icon.dim().width as usize,
                 icon.dim().height as usize,
             );
-            ctx.draw
-                .blend_slice(buffer.pixels_mut(), icon.pixels(), &r, stride);
+            ctx.draw.blend_slice_safe(
+                buffer.pixels_mut(),
+                icon.pixels(),
+                &r,
+                stride,
+                &safe_utuple,
+            );
         } else if let Some(icon) = ctx.ui.icon(&self.icon_name) {
             let utuple = self.dim.to_buffer_shrunk_utuple(&shrinker);
+            let safe_utuple = self.dim.to_buffer_utuple();
+            let icon_x = utuple.0
+                + utuple
+                    .2
+                    .saturating_sub(icon.dim().width as usize)
+                    .saturating_div(2);
+            let icon_y = utuple.1
+                + utuple
+                    .3
+                    .saturating_sub(icon.dim().height as usize)
+                    .saturating_div(2);
             let r = (
-                ((utuple.0 + (utuple.2 - icon.dim().width as usize) / 2) as i32
-                    + self.icon_offset.x) as usize,
-                ((utuple.1 + (utuple.3 - icon.dim().height as usize) / 2) as i32
-                    + self.icon_offset.y) as usize,
+                icon_x as isize + self.icon_offset.x as isize,
+                icon_y as isize + self.icon_offset.y as isize,
                 icon.dim().width as usize,
                 icon.dim().height as usize,
             );
-            ctx.draw
-                .blend_slice(buffer.pixels_mut(), icon.pixels(), &r, stride);
+            ctx.draw.blend_slice_safe(
+                buffer.pixels_mut(),
+                icon.pixels(),
+                &r,
+                stride,
+                &safe_utuple,
+            );
         }
 
         if !self.text.is_empty() {

@@ -553,9 +553,7 @@ impl TheTrait for Editor {
         ui.set_statusbar_name("Statusbar".to_string());
 
         let mut top_canvas = TheCanvas::new();
-        // Internal file/edit/game menu is hidden for the Xcode staticlib wrapper
-        // where native menu handling is expected.
-        #[cfg(not(feature = "staticlib"))]
+        // Keep the internal menu row visible in all builds.
         {
             let mut menu_canvas = TheCanvas::new();
             let mut menu = TheMenu::new(TheId::named("Menu"));
@@ -761,9 +759,6 @@ impl TheTrait for Editor {
         }
 
         let mut menubar = TheMenubar::new(TheId::named("Menubar"));
-        #[cfg(feature = "staticlib")]
-        menubar.limiter_mut().set_max_height(43);
-        #[cfg(not(feature = "staticlib"))]
         menubar.limiter_mut().set_max_height(43 + 22);
 
         let mut logo_button = TheMenubarButton::new(TheId::named("Logo"));
@@ -905,7 +900,6 @@ impl TheTrait for Editor {
         let mut shared_canvas = TheCanvas::new();
         shared_canvas.set_layout(vsplitlayout);
 
-        // Workspace strip: quick designer actions directly above the editor.
         let mut workspace_top = TheCanvas::new();
         workspace_top.set_widget(TheTraybar::new(TheId::empty()));
 
@@ -915,30 +909,35 @@ impl TheTrait for Editor {
 
         let mut workspace_title = TheText::new(TheId::named("Workspace Title"));
         workspace_title.set_text("Vertex Workspace".to_string());
+        workspace_title.limiter_mut().set_max_width(200);
         workspace_actions.add_widget(Box::new(workspace_title));
         workspace_actions.add_widget(Box::new(TheHDivider::new(TheId::empty())));
 
         let mut validate_button = TheTraybarButton::new(TheId::named("Project Validate"));
         validate_button.set_icon_name("info".to_string());
         validate_button.set_status_text("Validate project consistency");
+        validate_button.set_fixed_size(true);
         workspace_actions.add_widget(Box::new(validate_button));
 
         let mut build_button = TheTraybarButton::new(TheId::named("Build Validate And Compile"));
         build_button.set_icon_name("export".to_string());
         build_button.set_status_text("Validate and compile runtime output");
+        build_button.set_fixed_size(true);
         workspace_actions.add_widget(Box::new(build_button));
 
-        let mut widgets_button = TheTraybarButton::new(TheId::named("Content Add Widget Starter Pack"));
+        let mut widgets_button =
+            TheTraybarButton::new(TheId::named("Content Add Widget Starter Pack"));
         widgets_button.set_icon_name("treasure-chest".to_string());
         widgets_button.set_status_text("Create starter widget windows");
+        widgets_button.set_fixed_size(true);
         workspace_actions.add_widget(Box::new(widgets_button));
 
         let mut refresh_button = TheTraybarButton::new(TheId::named("Project Refresh View"));
         refresh_button.set_icon_name("arrows-clockwise".to_string());
         refresh_button.set_status_text("Refresh workspace content");
+        refresh_button.set_fixed_size(true);
         workspace_actions.add_widget(Box::new(refresh_button));
 
-        workspace_actions.set_reverse_index(Some(1));
         workspace_top.set_layout(workspace_actions);
         shared_canvas.set_top(workspace_top);
 
