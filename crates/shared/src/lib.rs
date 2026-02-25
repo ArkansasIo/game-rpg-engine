@@ -10,9 +10,12 @@ pub mod grid2d_time;
 pub mod interaction;
 pub mod item;
 pub mod multidim;
+pub mod pixel_avatar_rig;
 pub mod project;
+pub mod procedural_props;
 pub mod region;
 pub mod renderer_utils;
+pub mod rpg_lib;
 pub mod rpg2d;
 pub mod rusterix_utils;
 pub mod screen;
@@ -20,6 +23,7 @@ pub mod settingscontainer;
 pub mod tilemap;
 pub mod tileselection;
 pub mod unreal_editor;
+pub mod unreal_blueprint_math;
 
 pub mod prelude {
     pub use ::serde::{Deserialize, Serialize};
@@ -36,14 +40,18 @@ pub mod prelude {
     pub use crate::interaction::*;
     pub use crate::item::Item;
     pub use crate::multidim::*;
+    pub use crate::pixel_avatar_rig::*;
     pub use crate::project::{MapMode, Project};
+    pub use crate::procedural_props::*;
     pub use crate::region::Region;
     pub use crate::renderer_utils::ray_sphere;
+    pub use crate::rpg_lib::*;
     pub use crate::rpg2d::*;
     pub use crate::screen::*;
     pub use crate::tilemap::{Tile, Tilemap};
     pub use indexmap::IndexMap;
     pub use crate::unreal_editor::*;
+    pub use crate::unreal_blueprint_math::*;
     pub use rusterix::{
         Avatar, AvatarAnimation, AvatarAnimationFrame, AvatarDirection, AvatarPerspective,
         AvatarPerspectiveCount,
