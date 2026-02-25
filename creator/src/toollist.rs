@@ -49,6 +49,7 @@ impl ToolList {
             Box::new(SectorTool::new()),
             Box::new(RectTool::new()),
             Box::new(crate::tools::entity::EntityTool::new()),
+            Box::new(crate::tools::pixelart::PixelArtTool::new()),
             // Box::new(RenderTool::new()),
             // Box::new(TerrainTool::new()),
             // Box::new(CodeTool::new()),

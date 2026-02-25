@@ -14,6 +14,7 @@ pub mod selection;
 // pub mod terrain;
 // pub mod tileset;
 pub mod entity;
+pub mod pixelart;
 pub mod vertex;
 
 #[derive(PartialEq, Clone, Debug, Copy)]

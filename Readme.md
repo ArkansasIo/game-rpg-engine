@@ -1,7 +1,5 @@
-# Eldiron
-
-![Eldiron Header](images/eldiron_header.png)
-
+#NEW RP-GAME Engine Test RPG Editor
+ 
 Eldiron is an open-source RPG creator and runtime for building classic-style role-playing games.
 
 Supported game styles:
