@@ -113,7 +113,7 @@ pub mod prelude {
 
 #[cfg(feature = "staticlib")]
 mod ffi {
-    use super::editor::Editor;
+    use super::editor::{CompileFromEditorInputRequest, CompileFromEditorInputResponse, Editor};
     use super::prelude::*;
 
     use std::ffi::{CStr, CString};
@@ -423,5 +423,79 @@ mod ffi {
     #[unsafe(no_mangle)]
     pub extern "C" fn rust_has_changes() -> bool {
         APP.lock().unwrap().has_changes()
+    }
+
+    fn ffi_error_response(message: impl Into<String>) -> CompileFromEditorInputResponse {
+        CompileFromEditorInputResponse {
+            success: false,
+            message: message.into(),
+            warnings: vec![],
+            errors: vec![],
+            output_path: None,
+            compiled_project_json: None,
+            stats: Default::default(),
+        }
+    }
+
+    fn to_ffi_c_string(value: String) -> *mut c_char {
+        match CString::new(value) {
+            Ok(cstring) => cstring.into_raw(),
+            Err(_) => CString::new("{\"success\":false,\"message\":\"Invalid string for FFI output.\",\"warnings\":[],\"errors\":[],\"output_path\":null,\"compiled_project_json\":null,\"stats\":{\"regions\":0,\"screens\":0,\"tilemaps\":0,\"tiles\":0,\"characters\":0,\"items\":0,\"assets\":0}}")
+                .map(CString::into_raw)
+                .unwrap_or(ptr::null_mut()),
+        }
+    }
+
+    /// # Safety
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn rust_compile_game_from_editor_input(
+        input_json: *const c_char,
+    ) -> *mut c_char {
+        if input_json.is_null() {
+            let response = ffi_error_response("Input JSON pointer is null.");
+            let payload = serde_json::to_string(&response).unwrap_or_else(|_| "{}".to_string());
+            return to_ffi_c_string(payload);
+        }
+
+        let raw_input = unsafe { CStr::from_ptr(input_json) };
+        let input_str = match raw_input.to_str() {
+            Ok(value) => value,
+            Err(error) => {
+                let mut response = ffi_error_response("Input JSON is not valid UTF-8.");
+                response.errors.push(error.to_string());
+                let payload = serde_json::to_string(&response).unwrap_or_else(|_| "{}".to_string());
+                return to_ffi_c_string(payload);
+            }
+        };
+
+        let request = match serde_json::from_str::<CompileFromEditorInputRequest>(input_str) {
+            Ok(request) => request,
+            Err(error) => {
+                let mut response = ffi_error_response("Failed to parse compile request JSON.");
+                response.errors.push(error.to_string());
+                let payload = serde_json::to_string(&response).unwrap_or_else(|_| "{}".to_string());
+                return to_ffi_c_string(payload);
+            }
+        };
+
+        let response = APP.lock().unwrap().compile_from_editor_input(request);
+        let payload = serde_json::to_string(&response).unwrap_or_else(|error| {
+            let mut fallback = ffi_error_response("Failed to serialize compile response.");
+            fallback.errors.push(error.to_string());
+            serde_json::to_string(&fallback).unwrap_or_else(|_| "{}".to_string())
+        });
+
+        to_ffi_c_string(payload)
+    }
+
+    /// # Safety
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn rust_free_string(value: *mut c_char) {
+        if value.is_null() {
+            return;
+        }
+        unsafe {
+            let _ = CString::from_raw(value);
+        }
     }
 }

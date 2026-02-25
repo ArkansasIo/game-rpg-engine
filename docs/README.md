@@ -1,4 +1,5 @@
-# Eldiron Documentation
+# NexusStudio
+Vertex Engine Editor  Documentation
 
 This folder contains the documentation website for Eldiron (Docusaurus).
 

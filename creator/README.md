@@ -1,12 +1,12 @@
-# Eldiron Creator
+# NexusStudio
 
-**Eldiron** is a cross-platform creator for classic retro role-playing games (RPGs). Its primary goal is to enable the creation of RPGs reminiscent of the 1980s and 1990s while incorporating modern features such as multiplayer support, procedural content generation, and more.
+**NexusStudio** is a cross-platform creator for classic retro role-playing games (RPGs). It is branded as the **Vertex Engine Editor** and focuses on building RPGs with modern workflows, procedural systems, and multiplayer-ready foundations.
 
-Eldiron natively supports **2D** (like Ultima 4/5), **isometric**, and **first-person** RPGs, allowing developers to craft a variety of experiences effortlessly.
+NexusStudio supports **2D** (like Ultima 4/5), **isometric**, and **first-person** RPG workflows, allowing designers to craft a wide range of game experiences.
 
-![Eldiron Creator](images/eldironv0.8.100.png)
+![NexusStudio - Vertex Engine Editor](images/eldironv0.8.100.png)
 
-Eldiron is open-source and licensed under the **MIT License**.
+NexusStudio is open-source and licensed under the **MIT License**.
 
 For a more detailed feature overview please visit [Eldiron.com](https://eldiron.com) or the [GitHub repository](https://github.com/markusmoenig/Eldiron).
 

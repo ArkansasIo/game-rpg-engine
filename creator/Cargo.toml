@@ -54,15 +54,15 @@ self_update = { version = "0.39.0", optional = true, features = [
 theframework = { workspace = true, features = ["ui"] }
 
 [package.metadata.bundle.bin.eldiron-creator]
-name = "Eldiron Creator"
+name = "NexusStudio"
 identifier = "com.moenig.eldiron"
 icon = ["../build/Eldiron.icns"]
 resources = []
 copyright = "Copyright (c) Markus Moenig 2025. All rights reserved."
 category = "Game"
-short_description = "A game creator for classical RPGs with modern features."
+short_description = "Vertex Engine Editor for building classical and modern RPGs."
 long_description = """
-Create classical RPGs with Eldiron.
+Create RPG worlds with NexusStudio, the Vertex Engine Editor.
 """
 
 # cargo build -p eldiron-creator --lib --release --features staticlib

@@ -95,6 +95,44 @@ pub struct Editor {
     build_values: ValueContainer,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct CompileFromEditorInputRequest {
+    #[serde(default)]
+    pub project_json: Option<String>,
+    #[serde(default)]
+    pub output_path: Option<String>,
+    #[serde(default)]
+    pub pretty: bool,
+    #[serde(default = "default_true")]
+    pub include_compiled_project_json: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct CompileFromEditorInputStats {
+    pub regions: usize,
+    pub screens: usize,
+    pub tilemaps: usize,
+    pub tiles: usize,
+    pub characters: usize,
+    pub items: usize,
+    pub assets: usize,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct CompileFromEditorInputResponse {
+    pub success: bool,
+    pub message: String,
+    pub warnings: Vec<String>,
+    pub errors: Vec<String>,
+    pub output_path: Option<String>,
+    pub compiled_project_json: Option<String>,
+    pub stats: CompileFromEditorInputStats,
+}
+
+fn default_true() -> bool {
+    true
+}
+
 impl Editor {
     fn is_realtime_mode(&self) -> bool {
         self.server_ctx.game_mode
@@ -108,6 +146,262 @@ impl Editor {
         } else {
             config.game_tick_ms.max(1) as u64
         }
+    }
+
+    fn compile_project_for_runtime(project: &mut Project) -> Vec<String> {
+        let mut warnings = Vec::new();
+
+        for region in &mut project.regions {
+            for (_, profile) in &mut region.map.profiles {
+                profile.sanitize();
+            }
+            region.map.sanitize();
+        }
+
+        for (_, screen) in &mut project.screens {
+            screen.map.sanitize();
+        }
+
+        if project.tiles.is_empty() {
+            let tiles = project.extract_tiles();
+
+            for (id, tile_data) in &tiles {
+                let mut texture_array: Vec<Texture> = vec![];
+                for buffer in &tile_data.buffer {
+                    let mut texture = Texture::new(
+                        buffer.pixels().to_vec(),
+                        buffer.dim().width as usize,
+                        buffer.dim().height as usize,
+                    );
+                    texture.generate_normals(true);
+                    texture_array.push(texture);
+                }
+                let tile = rusterix::Tile {
+                    id: tile_data.id,
+                    role: rusterix::TileRole::from_index(tile_data.role),
+                    textures: texture_array,
+                    module: None,
+                    blocking: tile_data.blocking,
+                    scale: tile_data.scale,
+                    tags: tile_data.name.clone(),
+                };
+                project.tiles.insert(*id, tile);
+            }
+            warnings.push("Project used legacy tilemap tiles; migrated to project tiles.".to_string());
+        }
+
+        for tile in project.tiles.values_mut() {
+            for texture in &mut tile.textures {
+                texture.generate_normals(true);
+            }
+        }
+
+        for character in project.characters.values_mut() {
+            if character.source.starts_with("class") {
+                character.source = character.module.build(false);
+                character.source_debug = character.module.build(true);
+            }
+        }
+
+        for item in project.items.values_mut() {
+            if item.source.starts_with("class") {
+                item.source = item.module.build(false);
+                item.source_debug = item.module.build(true);
+            }
+        }
+
+        warnings
+    }
+
+    fn compile_stats(project: &Project) -> CompileFromEditorInputStats {
+        CompileFromEditorInputStats {
+            regions: project.regions.len(),
+            screens: project.screens.len(),
+            tilemaps: project.tilemaps.len(),
+            tiles: project.tiles.len(),
+            characters: project.characters.len(),
+            items: project.items.len(),
+            assets: project.assets.len(),
+        }
+    }
+
+    pub fn compile_from_editor_input(
+        &mut self,
+        request: CompileFromEditorInputRequest,
+    ) -> CompileFromEditorInputResponse {
+        let mut response = CompileFromEditorInputResponse::default();
+
+        let mut project = if let Some(project_json) = request.project_json.as_ref() {
+            match serde_json::from_str::<Project>(project_json) {
+                Ok(project) => project,
+                Err(error) => {
+                    response.message = "Failed to parse editor project input.".to_string();
+                    response.errors.push(error.to_string());
+                    return response;
+                }
+            }
+        } else {
+            self.project.clone()
+        };
+
+        response.warnings = Self::compile_project_for_runtime(&mut project);
+        response.stats = Self::compile_stats(&project);
+
+        let compiled_json = if request.pretty {
+            match serde_json::to_string_pretty(&project) {
+                Ok(value) => value,
+                Err(error) => {
+                    response.message = "Failed to serialize compiled project.".to_string();
+                    response.errors.push(error.to_string());
+                    return response;
+                }
+            }
+        } else {
+            match serde_json::to_string(&project) {
+                Ok(value) => value,
+                Err(error) => {
+                    response.message = "Failed to serialize compiled project.".to_string();
+                    response.errors.push(error.to_string());
+                    return response;
+                }
+            }
+        };
+
+        if let Some(path) = request.output_path.as_ref() {
+            if let Err(error) = std::fs::write(path, &compiled_json) {
+                response.message = "Failed to write compiled output file.".to_string();
+                response.errors.push(error.to_string());
+                return response;
+            }
+            response.output_path = Some(path.clone());
+        }
+
+        if request.include_compiled_project_json || response.output_path.is_none() {
+            response.compiled_project_json = Some(compiled_json);
+        }
+
+        if request.project_json.is_none() {
+            self.project = project;
+        }
+
+        response.success = true;
+        response.message = "Compile successful.".to_string();
+        response
+    }
+
+    fn refresh_designer_views(&mut self, ui: &mut TheUI, ctx: &mut TheContext) {
+        insert_content_into_maps(&mut self.project);
+        self.sidebar
+            .load_from_project(ui, ctx, &mut self.server_ctx, &mut self.project);
+        self.mapeditor.load_from_project(ui, ctx, &self.project);
+        *PALETTE.write().unwrap() = self.project.palette.clone();
+    }
+
+    fn unique_name<I>(&self, existing: I, base: &str) -> String
+    where
+        I: Iterator<Item = String>,
+    {
+        let names: std::collections::HashSet<String> =
+            existing.map(|name| name.to_lowercase()).collect();
+        if !names.contains(&base.to_lowercase()) {
+            return base.to_string();
+        }
+
+        let mut index = 2usize;
+        loop {
+            let candidate = format!("{base} {index}");
+            if !names.contains(&candidate.to_lowercase()) {
+                return candidate;
+            }
+            index += 1;
+        }
+    }
+
+    fn create_widget_window_screen(&self, base_name: &str, window_type: &str) -> Screen {
+        let mut screen = Screen::new();
+        screen.name = self.unique_name(
+            self.project.screens.values().map(|s| s.name.clone()),
+            base_name,
+        );
+        screen.map.name = format!("{} [{}]", screen.name, window_type);
+        screen
+    }
+
+    fn validate_project_for_design(&self) -> (Vec<String>, Vec<String>) {
+        let mut warnings = Vec::new();
+        let mut errors = Vec::new();
+
+        if self.project.regions.is_empty() {
+            errors.push("Project has no regions.".to_string());
+        }
+        if self.project.tiles.is_empty() && self.project.tilemaps.is_empty() {
+            warnings.push("Project has no tiles or tilemaps.".to_string());
+        }
+
+        let mut region_names = std::collections::HashSet::new();
+        for region in &self.project.regions {
+            if region.name.trim().is_empty() {
+                errors.push(format!("Region {} has an empty name.", region.id));
+            }
+            let key = region.name.trim().to_lowercase();
+            if !key.is_empty() && !region_names.insert(key.clone()) {
+                warnings.push(format!("Duplicate region name found: '{}'.", region.name));
+            }
+        }
+
+        let mut character_names = std::collections::HashSet::new();
+        for character in self.project.characters.values() {
+            if character.name.trim().is_empty() {
+                errors.push(format!("Character {} has an empty name.", character.id));
+            }
+            let key = character.name.trim().to_lowercase();
+            if !key.is_empty() && !character_names.insert(key.clone()) {
+                warnings.push(format!("Duplicate character name found: '{}'.", character.name));
+            }
+        }
+
+        let mut item_names = std::collections::HashSet::new();
+        for item in self.project.items.values() {
+            if item.name.trim().is_empty() {
+                errors.push(format!("Item {} has an empty name.", item.id));
+            }
+            let key = item.name.trim().to_lowercase();
+            if !key.is_empty() && !item_names.insert(key.clone()) {
+                warnings.push(format!("Duplicate item name found: '{}'.", item.name));
+            }
+        }
+
+        (warnings, errors)
+    }
+
+    fn compile_runtime_to_project_folder(
+        &mut self,
+        pretty: bool,
+    ) -> Result<(PathBuf, CompileFromEditorInputResponse), String> {
+        let source_path = self
+            .project_path
+            .as_ref()
+            .ok_or_else(|| "Save the project first to export compile output.".to_string())?;
+
+        let mut output_path = source_path.clone();
+        output_path.set_extension("runtime.eldiron.json");
+
+        let response = self.compile_from_editor_input(CompileFromEditorInputRequest {
+            output_path: Some(output_path.to_string_lossy().into_owned()),
+            pretty,
+            include_compiled_project_json: false,
+            ..Default::default()
+        });
+
+        if !response.success {
+            return Err(response
+                .errors
+                .first()
+                .cloned()
+                .unwrap_or_else(|| response.message.clone()));
+        }
+
+        Ok((output_path, response))
     }
 }
 
@@ -182,7 +476,7 @@ impl TheTrait for Editor {
     }
 
     fn window_title(&self) -> String {
-        "Eldiron Creator".to_string()
+        "NexusStudio".to_string()
     }
 
     fn target_fps(&self) -> f64 {
@@ -198,7 +492,10 @@ impl TheTrait for Editor {
     }
 
     fn window_icon(&self) -> Option<(Vec<u8>, u32, u32)> {
-        if let Some(file) = Embedded::get("window_logo.png") {
+        let file = Embedded::get("icons/vertex_splash.png")
+            .or_else(|| Embedded::get("icons/window_logo.png"))
+            .or_else(|| Embedded::get("window_logo.png"));
+        if let Some(file) = file {
             let data = std::io::Cursor::new(file.data);
 
             let decoder = png::Decoder::new(data);
@@ -335,13 +632,130 @@ impl TheTrait for Editor {
                 TheAccelerator::new(TheAcceleratorKey::CTRLCMD | TheAcceleratorKey::SHIFT, 'p'),
             ));
 
+            let mut project_menu = TheContextMenu::named("Project".to_string());
+            project_menu.add(TheContextMenuItem::new(
+                "Validate Project".to_string(),
+                TheId::named("Project Validate"),
+            ));
+            project_menu.add(TheContextMenuItem::new(
+                "Refresh Designer View".to_string(),
+                TheId::named("Project Refresh View"),
+            ));
+
+            let mut build_compile_submenu = TheContextMenu::named("Compile".to_string());
+            build_compile_submenu.add(TheContextMenuItem::new_with_accel(
+                "Compile Runtime (Compact)".to_string(),
+                TheId::named("Build Compile Runtime Compact"),
+                TheAccelerator::new(TheAcceleratorKey::CTRLCMD | TheAcceleratorKey::SHIFT, 'b'),
+            ));
+            build_compile_submenu.add(TheContextMenuItem::new(
+                "Compile Runtime (Pretty)".to_string(),
+                TheId::named("Build Compile Runtime Pretty"),
+            ));
+            build_compile_submenu.add(TheContextMenuItem::new(
+                "Compile Runtime To Project Folder".to_string(),
+                TheId::named("Build Compile Runtime To File"),
+            ));
+
+            let mut build_menu = TheContextMenu::named("Build".to_string());
+            build_menu.add(TheContextMenuItem::new_submenu(
+                "Compile".to_string(),
+                TheId::named("Build Compile Menu"),
+                build_compile_submenu,
+            ));
+            build_menu.add(TheContextMenuItem::new(
+                "Validate + Compile".to_string(),
+                TheId::named("Build Validate And Compile"),
+            ));
+
+            let mut world_generate_submenu = TheContextMenu::named("Generate".to_string());
+            world_generate_submenu.add(TheContextMenuItem::new(
+                "Add Region".to_string(),
+                TheId::named("World Add Region"),
+            ));
+            world_generate_submenu.add(TheContextMenuItem::new(
+                "Add Dungeon Region".to_string(),
+                TheId::named("World Add Dungeon"),
+            ));
+            world_generate_submenu.add(TheContextMenuItem::new(
+                "Add UI Screen".to_string(),
+                TheId::named("World Add Screen"),
+            ));
+
+            let mut world_menu = TheContextMenu::named("World".to_string());
+            world_menu.add(TheContextMenuItem::new_submenu(
+                "Generate".to_string(),
+                TheId::named("World Generate Menu"),
+                world_generate_submenu,
+            ));
+            world_menu.add(TheContextMenuItem::new(
+                "Create Biome Starter Pack".to_string(),
+                TheId::named("World Seed Biomes"),
+            ));
+
+            let mut content_create_submenu = TheContextMenu::named("Create".to_string());
+            content_create_submenu.add(TheContextMenuItem::new(
+                "Add Character Template".to_string(),
+                TheId::named("Content Add Character"),
+            ));
+            content_create_submenu.add(TheContextMenuItem::new(
+                "Add Item Template".to_string(),
+                TheId::named("Content Add Item"),
+            ));
+            content_create_submenu.add(TheContextMenuItem::new(
+                "Add Starter Character + Item".to_string(),
+                TheId::named("Content Add Starter Pack"),
+            ));
+
+            let mut content_widgets_submenu = TheContextMenu::named("Widget Windows".to_string());
+            content_widgets_submenu.add(TheContextMenuItem::new(
+                "Create HUD Window".to_string(),
+                TheId::named("Content Add Widget HUD"),
+            ));
+            content_widgets_submenu.add(TheContextMenuItem::new(
+                "Create Inventory Window".to_string(),
+                TheId::named("Content Add Widget Inventory"),
+            ));
+            content_widgets_submenu.add(TheContextMenuItem::new(
+                "Create Dialogue Window".to_string(),
+                TheId::named("Content Add Widget Dialogue"),
+            ));
+            content_widgets_submenu.add(TheContextMenuItem::new(
+                "Create Settings Window".to_string(),
+                TheId::named("Content Add Widget Settings"),
+            ));
+            content_widgets_submenu.add(TheContextMenuItem::new(
+                "Create Widget Window Starter Pack".to_string(),
+                TheId::named("Content Add Widget Starter Pack"),
+            ));
+
+            let mut content_menu = TheContextMenu::named("Content".to_string());
+            content_menu.add(TheContextMenuItem::new_submenu(
+                "Create".to_string(),
+                TheId::named("Content Create Menu"),
+                content_create_submenu,
+            ));
+            content_menu.add(TheContextMenuItem::new_submenu(
+                "Widget Windows".to_string(),
+                TheId::named("Content Widget Windows Menu"),
+                content_widgets_submenu,
+            ));
+
             file_menu.register_accel(ctx);
             edit_menu.register_accel(ctx);
             game_menu.register_accel(ctx);
+            project_menu.register_accel(ctx);
+            build_menu.register_accel(ctx);
+            world_menu.register_accel(ctx);
+            content_menu.register_accel(ctx);
 
             menu.add_context_menu(file_menu);
             menu.add_context_menu(edit_menu);
             menu.add_context_menu(game_menu);
+            menu.add_context_menu(project_menu);
+            menu.add_context_menu(build_menu);
+            menu.add_context_menu(world_menu);
+            menu.add_context_menu(content_menu);
             menu_canvas.set_widget(menu);
             top_canvas.set_top(menu_canvas);
         }
@@ -353,7 +767,7 @@ impl TheTrait for Editor {
         menubar.limiter_mut().set_max_height(43 + 22);
 
         let mut logo_button = TheMenubarButton::new(TheId::named("Logo"));
-        logo_button.set_icon_name("logo".to_string());
+        logo_button.set_icon_name("vertex_editor_logo".to_string());
         logo_button.set_status_text(&fl!("status_logo_button"));
 
         let mut open_button = TheMenubarButton::new(TheId::named("Open"));
@@ -1291,7 +1705,7 @@ impl TheTrait for Editor {
                                 }
                             }
                         }
-                    } else if name == "Update Eldiron" && role == TheDialogButtonRole::Accept {
+                    } else if name == "Update NexusStudio" && role == TheDialogButtonRole::Accept {
                         #[cfg(all(not(target_arch = "wasm32"), feature = "self-update"))]
                         {
                             let updater = self.self_updater.lock().unwrap();
@@ -2032,6 +2446,264 @@ impl TheTrait for Editor {
                             .set_widget_state("Save As".to_string(), TheWidgetState::None);
                         ctx.ui.clear_hover();
                         redraw = true;
+                    } else if id.name == "Project Validate" {
+                        let (warnings, errors) = self.validate_project_for_design();
+                        if errors.is_empty() {
+                            ctx.ui.send(TheEvent::SetStatusText(
+                                TheId::empty(),
+                                format!(
+                                    "Project validation passed ({} warning(s)).",
+                                    warnings.len()
+                                ),
+                            ));
+                        } else {
+                            ctx.ui.send(TheEvent::SetStatusText(
+                                TheId::empty(),
+                                format!(
+                                    "Project validation failed ({} error(s), {} warning(s)).",
+                                    errors.len(),
+                                    warnings.len()
+                                ),
+                            ));
+                        }
+                    } else if id.name == "Project Refresh View" {
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Designer view refreshed from project data.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Build Compile Runtime Compact"
+                        || id.name == "Build Compile Runtime Pretty"
+                    {
+                        let pretty = id.name == "Build Compile Runtime Pretty";
+                        let response = self.compile_from_editor_input(CompileFromEditorInputRequest {
+                            pretty,
+                            include_compiled_project_json: true,
+                            ..Default::default()
+                        });
+                        if response.success {
+                            if let Some(compiled) = response.compiled_project_json {
+                                ctx.ui.clipboard = Some(TheValue::Text(compiled));
+                                ctx.ui.clipboard_app_type = Some("application/json".to_string());
+                            }
+                            ctx.ui.send(TheEvent::SetStatusText(
+                                TheId::empty(),
+                                format!(
+                                    "Compiled runtime JSON ({} warning(s)); copied to clipboard.",
+                                    response.warnings.len()
+                                ),
+                            ));
+                        } else {
+                            let detail = response
+                                .errors
+                                .first()
+                                .cloned()
+                                .unwrap_or_else(|| response.message.clone());
+                            ctx.ui.send(TheEvent::SetStatusText(
+                                TheId::empty(),
+                                format!("Runtime compile failed: {detail}"),
+                            ));
+                        }
+                    } else if id.name == "Build Compile Runtime To File" {
+                        match self.compile_runtime_to_project_folder(true) {
+                            Ok((path, response)) => {
+                                ctx.ui.send(TheEvent::SetStatusText(
+                                    TheId::empty(),
+                                    format!(
+                                        "Runtime output exported to {} ({} warning(s)).",
+                                        path.to_string_lossy(),
+                                        response.warnings.len()
+                                    ),
+                                ));
+                            }
+                            Err(error) => {
+                                ctx.ui.send(TheEvent::SetStatusText(
+                                    TheId::empty(),
+                                    format!("Export failed: {error}"),
+                                ));
+                            }
+                        }
+                    } else if id.name == "Build Validate And Compile" {
+                        let (warnings, errors) = self.validate_project_for_design();
+                        if !errors.is_empty() {
+                            ctx.ui.send(TheEvent::SetStatusText(
+                                TheId::empty(),
+                                format!(
+                                    "Build blocked by validation errors ({} error(s)).",
+                                    errors.len()
+                                ),
+                            ));
+                        } else {
+                            match self.compile_runtime_to_project_folder(false) {
+                                Ok((path, compile_response)) => {
+                                    ctx.ui.send(TheEvent::SetStatusText(
+                                        TheId::empty(),
+                                        format!(
+                                            "Build complete: {} ({} warning(s), {} compile warning(s)).",
+                                            path.to_string_lossy(),
+                                            warnings.len(),
+                                            compile_response.warnings.len()
+                                        ),
+                                    ));
+                                }
+                                Err(error) => {
+                                    ctx.ui.send(TheEvent::SetStatusText(
+                                        TheId::empty(),
+                                        format!("Build failed: {error}"),
+                                    ));
+                                }
+                            }
+                        }
+                    } else if id.name == "World Add Region" || id.name == "World Add Dungeon" {
+                        let base = if id.name == "World Add Dungeon" {
+                            "Dungeon Region"
+                        } else {
+                            "Region"
+                        };
+                        let mut region = Region::new();
+                        region.name =
+                            self.unique_name(self.project.regions.iter().map(|r| r.name.clone()), base);
+                        self.server_ctx.curr_region = region.id;
+                        self.project.regions.push(region);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            format!("{base} created."),
+                        ));
+                        redraw = true;
+                    } else if id.name == "World Add Screen" {
+                        let mut screen = Screen::new();
+                        screen.name = self.unique_name(
+                            self.project.screens.values().map(|s| s.name.clone()),
+                            "Screen",
+                        );
+                        self.project.add_screen(screen);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Screen created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "World Seed Biomes" {
+                        let biome_names = ["Grasslands", "Forest", "Desert", "Tundra", "Volcanic"];
+                        for biome in biome_names {
+                            let mut region = Region::new();
+                            region.name = self.unique_name(
+                                self.project.regions.iter().map(|r| r.name.clone()),
+                                biome,
+                            );
+                            self.project.regions.push(region);
+                        }
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Biome starter pack generated.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Character" {
+                        let mut character = Character::new();
+                        character.name = self.unique_name(
+                            self.project.characters.values().map(|c| c.name.clone()),
+                            "Character",
+                        );
+                        self.project.add_character(character);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Character template created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Item" {
+                        let mut item = Item::new();
+                        item.name = self.unique_name(
+                            self.project.items.values().map(|i| i.name.clone()),
+                            "Item",
+                        );
+                        self.project.add_item(item);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Item template created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Starter Pack" {
+                        let mut character = Character::new();
+                        character.name = self.unique_name(
+                            self.project.characters.values().map(|c| c.name.clone()),
+                            "Hero",
+                        );
+                        self.project.add_character(character);
+
+                        let mut item = Item::new();
+                        item.name = self.unique_name(
+                            self.project.items.values().map(|i| i.name.clone()),
+                            "Potion",
+                        );
+                        self.project.add_item(item);
+
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Starter content pack created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Widget HUD" {
+                        let screen = self.create_widget_window_screen("HUD Window", "HUD");
+                        self.project.add_screen(screen);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "HUD widget window created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Widget Inventory" {
+                        let screen =
+                            self.create_widget_window_screen("Inventory Window", "Inventory");
+                        self.project.add_screen(screen);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Inventory widget window created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Widget Dialogue" {
+                        let screen = self.create_widget_window_screen("Dialogue Window", "Dialogue");
+                        self.project.add_screen(screen);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Dialogue widget window created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Widget Settings" {
+                        let screen = self.create_widget_window_screen("Settings Window", "Settings");
+                        self.project.add_screen(screen);
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Settings widget window created.".to_string(),
+                        ));
+                        redraw = true;
+                    } else if id.name == "Content Add Widget Starter Pack" {
+                        let hud = self.create_widget_window_screen("HUD Window", "HUD");
+                        self.project.add_screen(hud);
+                        let inventory =
+                            self.create_widget_window_screen("Inventory Window", "Inventory");
+                        self.project.add_screen(inventory);
+                        let dialogue =
+                            self.create_widget_window_screen("Dialogue Window", "Dialogue");
+                        self.project.add_screen(dialogue);
+                        let settings =
+                            self.create_widget_window_screen("Settings Window", "Settings");
+                        self.project.add_screen(settings);
+
+                        self.refresh_designer_views(ui, ctx);
+                        ctx.ui.send(TheEvent::SetStatusText(
+                            TheId::empty(),
+                            "Widget window starter pack created.".to_string(),
+                        ));
+                        redraw = true;
                     }
                     // Server
                     else if id.name == "Play" {
@@ -2223,7 +2895,7 @@ impl TheTrait for Editor {
         while let Ok(event) = self.self_update_rx.try_recv() {
             match event {
                 SelfUpdateEvent::AlreadyUpToDate => {
-                    let text = str!("Eldiron is already up-to-date.");
+                    let text = str!("NexusStudio is already up-to-date.");
                     let uuid = Uuid::new_v4();
 
                     let width = 300;
@@ -2243,7 +2915,7 @@ impl TheTrait for Editor {
                     canvas.set_layout(hlayout);
 
                     ui.show_dialog(
-                        "Eldiron Up-to-Date",
+                        "NexusStudio Up-to-Date",
                         canvas,
                         vec![TheDialogButtonRole::Accept],
                         ctx,
@@ -2278,7 +2950,7 @@ impl TheTrait for Editor {
                     canvas.set_layout(hlayout);
 
                     ui.show_dialog(
-                        "Update Eldiron",
+                        "Update NexusStudio",
                         canvas,
                         vec![TheDialogButtonRole::Accept, TheDialogButtonRole::Reject],
                         ctx,
@@ -2289,7 +2961,7 @@ impl TheTrait for Editor {
                         statusbar
                             .as_statusbar()
                             .unwrap()
-                            .set_text(format!("Failed to update Eldiron: {err}"));
+                            .set_text(format!("Failed to update NexusStudio: {err}"));
                     }
                 }
                 SelfUpdateEvent::UpdateStart(release) => {
